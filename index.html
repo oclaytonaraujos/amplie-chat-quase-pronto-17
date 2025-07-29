@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amplie Chat - Sistema de Atendimento</title>
+    <meta name="description" content="Sistema completo de atendimento ao cliente e gestão de equipe" />
+    <meta name="author" content="Amplie Chat" />
+    
+    <!-- PWA e Performance -->
+    <meta name="theme-color" content="#3b82f6" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/placeholder.svg" />
+    
+    <!-- Preload recursos críticos para melhorar FCP/LCP -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="modulepreload" href="/src/App.tsx" />
+    <link rel="modulepreload" href="/src/pages/Auth.tsx" />
+    <link rel="modulepreload" href="/src/pages/Dashboard.tsx" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="//supabase.co" />
+    
+    <style>
+      /* CSS crítico inline para melhorar FCP e evitar CLS */
+      .loading-spinner{width:24px;height:24px;border:2px solid #e5e7eb;border-top:2px solid #3b82f6;border-radius:50%;animation:spin 1s linear infinite}
+      @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+      body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;background:#fafafa}
+      #root{min-height:100vh;display:flex;flex-direction:column}
+      /* Prevenção de CLS - reserved space para elementos críticos */
+      .header-reserved{height:64px}
+      .sidebar-reserved{width:256px}
+      .main-content-reserved{min-height:calc(100vh - 64px)}
+    </style>
+
+    <meta property="og:title" content="Amplie Chat - Sistema de Atendimento" />
+    <meta property="og:description" content="Sistema completo de atendimento ao cliente e gestão de equipe" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@amplie_chat" />
+    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
