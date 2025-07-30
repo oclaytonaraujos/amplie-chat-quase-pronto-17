@@ -1,5 +1,5 @@
 
-import { Mensagem, Usuario } from '@/types/chat-interno';
+import { Mensagem } from '@/types/chat-interno';
 
 export interface TransferMessage {
   tipo: 'transferencia';
@@ -13,7 +13,7 @@ export interface TransferMessage {
 export class ChatInternoTransferService {
   static createTransferMessage(
     transferData: TransferMessage,
-    autorMensagem: Usuario
+    autorMensagem: any
   ): Mensagem {
     const messageText = `🔄 TRANSFERÊNCIA DE ATENDIMENTO
     
@@ -38,18 +38,18 @@ Data: ${transferData.timestamp.toLocaleString('pt-BR')}`;
 
   static findOrCreateTransferConversation(
     conversas: any[],
-    usuarioOrigemId: number,
-    usuarioDestinoId: number,
-    usuarios: Usuario[]
+    usuarioOrigemId: string,
+    usuarioDestinoId: string,
+    usuarios: any[]
   ) {
     // Procurar conversa existente entre os dois usuários
     const conversaExistente = conversas.find(conversa => 
       conversa.tipo === 'individual' && 
       (
-        (conversa.participantes.some((p: Usuario) => p.id === usuarioOrigemId) &&
-         conversa.participantes.some((p: Usuario) => p.id === usuarioDestinoId)) ||
-        (conversa.participantes.some((p: Usuario) => p.id === usuarioDestinoId) &&
-         conversa.participantes.some((p: Usuario) => p.id === usuarioOrigemId))
+        (conversa.participantes.some((p: any) => p.id === usuarioOrigemId) &&
+         conversa.participantes.some((p: any) => p.id === usuarioDestinoId)) ||
+        (conversa.participantes.some((p: any) => p.id === usuarioDestinoId) &&
+         conversa.participantes.some((p: any) => p.id === usuarioOrigemId))
       )
     );
 

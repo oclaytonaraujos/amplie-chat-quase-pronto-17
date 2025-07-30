@@ -1,13 +1,14 @@
-
 export interface Usuario {
-  id: number;
+  id: string;
   nome: string;
   email: string;
-  avatar?: string;
-  status: 'online' | 'offline' | 'ausente';
-  cargo: string;
+  avatar_url?: string;
+  status: string;
+  cargo?: string;
+  setor?: string;
 }
 
+// Interfaces de compatibilidade com os componentes existentes
 export interface Conversa {
   id: number;
   tipo: 'individual' | 'grupo';
@@ -25,7 +26,13 @@ export interface Conversa {
 export interface Mensagem {
   id: number;
   texto: string;
-  autor: Usuario;
+  autor: {
+    id: number;
+    nome: string;
+    email: string;
+    status: 'online' | 'offline' | 'ausente';
+    cargo: string;
+  };
   tempo: string;
   tipo: 'texto' | 'imagem' | 'documento' | 'audio';
   anexo?: {
@@ -33,4 +40,33 @@ export interface Mensagem {
     url: string;
     tamanho?: string;
   };
+}
+
+export interface ConversaInterna {
+  id: string;
+  tipo: string;
+  nome?: string;
+  participante_1_id: string;
+  participante_2_id: string;
+  empresa_id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  participante?: Usuario;
+  ultimaMensagem?: {
+    conteudo: string;
+    remetente_nome: string;
+    created_at: string;
+  };
+  mensagensNaoLidas: number;
+}
+
+export interface MensagemInterna {
+  id: string;
+  conteudo: string;
+  conversa_interna_id: string;
+  remetente_id: string;
+  tipo_mensagem: string | null;
+  lida: boolean | null;
+  created_at: string | null;
+  remetente?: Usuario;
 }

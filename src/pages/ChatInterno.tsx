@@ -33,30 +33,30 @@ export default function ChatInterno() {
   // Converter dados para compatibilidade com componentes mock
   const convertToMockConversas = (conversasDb: any[]): Conversa[] => {
     return conversasDb.map(conv => ({
-      id: parseInt(conv.id.split('-')[0], 16), // Converter UUID para número
+      id: parseInt(conv.id.substring(0, 8), 16), // Converter UUID para número
       tipo: 'individual' as const,
-      nome: conv.profiles?.nome || 'Usuário',
+      nome: conv.participante?.nome || 'Usuário',
       participantes: [{
-        id: parseInt(conv.profiles?.id.split('-')[0] || '0', 16),
-        nome: conv.profiles?.nome || 'Usuário',
-        email: conv.profiles?.email || '',
-        status: conv.profiles?.status || 'offline',
-        cargo: conv.profiles?.cargo || 'Usuário'
+        id: conv.participante?.id || '0',
+        nome: conv.participante?.nome || 'Usuário',
+        email: conv.participante?.email || '',
+        status: 'online',
+        cargo: conv.participante?.cargo || 'Usuário'
       }],
-      mensagensNaoLidas: 0
+      mensagensNaoLidas: conv.mensagensNaoLidas || 0
     }));
   };
 
   const convertToMockMensagens = (mensagensDb: any[]): Mensagem[] => {
     return mensagensDb.map(msg => ({
-      id: parseInt(msg.id.split('-')[0], 16),
+      id: parseInt(msg.id.substring(0, 8), 16),
       texto: msg.conteudo,
       autor: {
-        id: parseInt(msg.remetente_id?.split('-')[0] || '0', 16),
-        nome: 'Usuário',
-        email: '',
-        status: 'online',
-        cargo: 'Usuário'
+        id: parseInt((msg.remetente?.id || msg.remetente_id || '0').substring(0, 8), 16),
+        nome: msg.remetente?.nome || 'Usuário',
+        email: msg.remetente?.email || '',
+        status: 'online' as const,
+        cargo: msg.remetente?.cargo || 'Usuário'
       },
       tempo: new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       tipo: msg.tipo_mensagem || 'texto'
@@ -66,7 +66,7 @@ export default function ChatInterno() {
   const handleSelectConversa = (conversa: any) => {
     // Encontrar a conversa original pelo nome (como identificador)
     const conversaOriginal = conversasInternas.find(c => 
-      c.profiles?.nome === conversa.nome
+      c.participante?.nome === conversa.nome
     );
     
     if (conversaOriginal) {
@@ -104,7 +104,7 @@ export default function ChatInterno() {
     if (conversa) {
       toast({
         title: "Chamada iniciada",
-        description: `Conectando com ${conversa.profiles?.nome}...`,
+        description: `Conectando com ${conversa.participante?.nome}...`,
       });
       // Aqui você implementaria a lógica real de chamada
     }
@@ -126,8 +126,9 @@ export default function ChatInterno() {
 
   const handleSelectContact = async (usuario: any) => {
     try {
-      // Criar nova conversa interna com o usuário selecionado
-      const novaConversa = await criarConversaInterna(usuario.id);
+      // Criar nova conversa interna com o usuário selecionado (usar ID original string do banco)
+      const usuarioOriginal = usuarios.find(u => parseInt(u.id.substring(0, 8), 16) === usuario.id);
+      const novaConversa = await criarConversaInterna(usuarioOriginal?.id || usuario.id);
       if (novaConversa) {
         setConversaSelecionada(novaConversa);
         loadMensagensInternas(novaConversa.id);
@@ -166,7 +167,7 @@ export default function ChatInterno() {
       `}>
         {showContacts ? (
           <ContactsList
-            usuarios={usuarios}
+            usuarios={usuarios.map(u => ({ ...u, id: parseInt(u.id.substring(0, 8), 16), status: 'online' as const, cargo: u.cargo || 'Usuário' }))}
             onSelectContact={handleSelectContact}
             onBack={() => setShowContacts(false)}
           />

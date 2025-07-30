@@ -3,45 +3,14 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-
-interface ConversaInterna {
-  id: string;
-  contato_id?: string;
-  agente_id?: string;
-  status: string;
-  canal: string;
-  prioridade: string;
-  setor?: string;
-  tags?: string[];
-  created_at: string;
-  updated_at: string;
-  empresa_id: string;
-  profiles?: {
-    id: string;
-    nome: string;
-    avatar_url?: string;
-    status: string;
-  };
-}
-
-interface MensagemInterna {
-  id: string;
-  conversa_id: string;
-  remetente_tipo: string;
-  remetente_id?: string;
-  conteudo: string;
-  tipo_mensagem: string;
-  metadata?: any;
-  lida: boolean;
-  created_at: string;
-}
+import { Usuario, ConversaInterna, MensagemInterna } from '@/types/chat-interno';
 
 export function useChatInterno() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [conversasInternas, setConversasInternas] = useState<ConversaInterna[]>([]);
   const [mensagensInternas, setMensagensInternas] = useState<{ [conversaId: string]: MensagemInterna[] }>({});
-  const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Carregar usuários da empresa
@@ -63,7 +32,7 @@ export function useChatInterno() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, nome, avatar_url, status, setor')
+        .select('id, nome, email, avatar_url, status, cargo, setor')
         .eq('empresa_id', currentProfile.empresa_id)
         .neq('id', user.id); // Excluir o próprio usuário
 
@@ -78,55 +47,42 @@ export function useChatInterno() {
     }
   };
 
-  // Carregar conversas internas - buscar conversas existentes da empresa
+  // Carregar conversas internas existentes do banco
   const loadConversasInternas = async () => {
     if (!user) return;
     
     try {
       setLoading(true);
       
-      // Buscar empresa do usuário
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
+      const { data, error } = await supabase
+        .from('conversas_internas')
+        .select(`
+          *,
+          participante_1:profiles!conversas_internas_participante_1_id_fkey(id, nome, email, avatar_url, status, cargo, setor),
+          participante_2:profiles!conversas_internas_participante_2_id_fkey(id, nome, email, avatar_url, status, cargo, setor)
+        `)
+        .or(`participante_1_id.eq.${user.id},participante_2_id.eq.${user.id}`)
+        .order('updated_at', { ascending: false });
 
-      if (!profile?.empresa_id) return;
-
-      // Buscar outros usuários da mesma empresa
-      const { data: usuarios, error: usuariosError } = await supabase
-        .from('profiles')
-        .select('id, nome, avatar_url, status, cargo')
-        .eq('empresa_id', profile.empresa_id)
-        .neq('id', user.id);
-
-      if (usuariosError) {
-        console.error('Erro ao carregar usuários:', usuariosError);
+      if (error) {
+        console.error('Erro ao carregar conversas internas:', error);
         return;
       }
 
-      // Simular conversas internas baseado nos usuários da empresa
-      const conversasSimuladas = usuarios?.map(usuario => ({
-        id: `chat-interno-${user.id}-${usuario.id}`,
-        contato_id: usuario.id,
-        agente_id: user.id,
-        status: 'ativo',
-        canal: 'chat-interno',
-        prioridade: 'normal',
-        setor: usuario.cargo,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        empresa_id: profile.empresa_id,
-        profiles: {
-          id: usuario.id,
-          nome: usuario.nome,
-          avatar_url: usuario.avatar_url,
-          status: usuario.status
-        }
-      })) || [];
+      // Mapear conversas com informações do outro participante
+      const conversasComParticipantes = data?.map(conversa => {
+        const outroParticipante = conversa.participante_1_id === user.id 
+          ? conversa.participante_2 
+          : conversa.participante_1;
+        
+        return {
+          ...conversa,
+          participante: outroParticipante,
+          mensagensNaoLidas: 0 // TODO: implementar contagem real
+        } as ConversaInterna;
+      }) || [];
 
-      setConversasInternas(conversasSimuladas);
+      setConversasInternas(conversasComParticipantes);
     } catch (error) {
       console.error('Erro ao carregar conversas internas:', error);
     } finally {
@@ -140,9 +96,12 @@ export function useChatInterno() {
     
     try {
       const { data, error } = await supabase
-        .from('mensagens')
-        .select('*')
-        .eq('conversa_id', conversaId)
+        .from('mensagens_internas')
+        .select(`
+          *,
+          remetente:profiles!mensagens_internas_remetente_id_fkey(id, nome, email, avatar_url, status, cargo, setor)
+        `)
+        .eq('conversa_interna_id', conversaId)
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -150,7 +109,7 @@ export function useChatInterno() {
         return;
       }
 
-      setMensagensInternas(prev => ({ ...prev, [conversaId]: data || [] }));
+      setMensagensInternas(prev => ({ ...prev, [conversaId]: data as MensagemInterna[] || [] }));
     } catch (error) {
       console.error('Erro ao carregar mensagens internas:', error);
     }
@@ -163,13 +122,13 @@ export function useChatInterno() {
     try {
       // Verificar se já existe uma conversa entre os usuários
       const { data: conversaExistente, error: errorBusca } = await supabase
-        .from('conversas')
-        .select('id')
-        .eq('canal', 'chat-interno')
-        .or(`and(agente_id.eq.${user.id},contato_id.eq.${destinatarioId}),and(agente_id.eq.${destinatarioId},contato_id.eq.${user.id})`)
+        .from('conversas_internas')
+        .select('*')
+        .or(`and(participante_1_id.eq.${user.id},participante_2_id.eq.${destinatarioId}),and(participante_1_id.eq.${destinatarioId},participante_2_id.eq.${user.id})`)
         .single();
 
       if (conversaExistente && !errorBusca) {
+        await loadConversasInternas();
         return conversaExistente;
       }
 
@@ -181,13 +140,11 @@ export function useChatInterno() {
         .single();
 
       const { data, error } = await supabase
-        .from('conversas')
+        .from('conversas_internas')
         .insert({
-          agente_id: user.id,
-          contato_id: destinatarioId,
-          status: 'ativo',
-          canal: 'chat-interno',
-          prioridade: 'normal',
+          participante_1_id: user.id,
+          participante_2_id: destinatarioId,
+          tipo: 'individual',
           empresa_id: profile?.empresa_id
         })
         .select()
@@ -217,10 +174,9 @@ export function useChatInterno() {
     
     try {
       const { data, error } = await supabase
-        .from('mensagens')
+        .from('mensagens_internas')
         .insert({
-          conversa_id: conversaId,
-          remetente_tipo: 'agente',
+          conversa_interna_id: conversaId,
           remetente_id: user.id,
           conteudo,
           tipo_mensagem: 'texto',
@@ -241,7 +197,7 @@ export function useChatInterno() {
 
       // Atualizar updated_at da conversa
       await supabase
-        .from('conversas')
+        .from('conversas_internas')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', conversaId);
 
@@ -263,7 +219,7 @@ export function useChatInterno() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'mensagens'
+          table: 'mensagens_internas'
         },
         (payload) => {
           const novaMensagem = payload.new as MensagemInterna;
@@ -271,8 +227,8 @@ export function useChatInterno() {
           
           setMensagensInternas(prev => ({
             ...prev,
-            [novaMensagem.conversa_id]: [
-              ...(prev[novaMensagem.conversa_id] || []),
+            [novaMensagem.conversa_interna_id]: [
+              ...(prev[novaMensagem.conversa_interna_id] || []),
               novaMensagem
             ]
           }));
