@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Search, Plus, MessageCircle, Users, User } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Plus, MessageCircle, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { OnlineStatusIndicator } from './OnlineStatusIndicator';
+import { ChatSearch } from './ChatSearch';
 import { Usuario, Conversa } from '@/types/chat-interno';
 interface ChatSidebarProps {
   conversas: Conversa[];
@@ -45,10 +46,12 @@ export function ChatSidebar({
         </div>
         
         {/* Barra de pesquisa */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input placeholder="Buscar conversas..." className="pl-10 h-9 text-sm" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-        </div>
+        <ChatSearch
+          value={searchTerm}
+          onChange={setSearchTerm}
+          onClear={() => setSearchTerm('')}
+          placeholder="Buscar conversas..."
+        />
       </div>
 
       {/* Lista de conversas */}
@@ -86,6 +89,16 @@ export function ChatSidebar({
                       {conversa.ultimaMensagem && <p className="text-xs text-gray-500 truncate mt-1 break-words">
                           {conversa.ultimaMensagem.texto}
                         </p>}
+                      
+                      {/* Status online para conversas individuais */}
+                      {conversa.tipo === 'individual' && conversa.participantes[0] && (
+                        <div className="mt-1">
+                          <OnlineStatusIndicator 
+                            isOnline={conversa.participantes[0].status === 'online'} 
+                            className="text-xs"
+                          />
+                        </div>
+                      )}
                       
                       {/* Participantes do grupo */}
                       {conversa.tipo === 'grupo' && <p className="text-xs text-gray-400 mt-1">

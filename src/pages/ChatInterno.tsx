@@ -7,6 +7,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { useTransferNotifications } from '@/hooks/useTransferNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { useChatInterno } from '@/hooks/useChatInterno';
+import { useChatInternoNotifications } from '@/hooks/useChatInternoNotifications';
 import { Usuario, Conversa, Mensagem } from '@/types/chat-interno';
 import { ChatInternoTransferService } from '@/services/chatInternoTransfer';
 
@@ -30,6 +31,12 @@ export default function ChatInterno() {
     enviarMensagemInterna
   } = useChatInterno();
 
+  // Hook para notificações e status
+  const {
+    unreadCounts,
+    marcarConversaComoLida
+  } = useChatInternoNotifications();
+
   // Converter dados para compatibilidade com componentes mock
   const convertToMockConversas = (conversasDb: any[]): Conversa[] => {
     return conversasDb.map(conv => ({
@@ -43,7 +50,7 @@ export default function ChatInterno() {
         status: 'online',
         cargo: conv.participante?.cargo || 'Usuário'
       }],
-      mensagensNaoLidas: conv.mensagensNaoLidas || 0
+      mensagensNaoLidas: unreadCounts[conv.id] || 0
     }));
   };
 
@@ -73,6 +80,8 @@ export default function ChatInterno() {
       setConversaSelecionada(conversaOriginal);
       // Carregar mensagens da conversa selecionada usando o ID original
       loadMensagensInternas(conversaOriginal.id);
+      // Marcar conversa como lida quando selecionada
+      marcarConversaComoLida(conversaOriginal.id);
     }
     
     if (isMobile) {

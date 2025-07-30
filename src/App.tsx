@@ -96,7 +96,7 @@ const preloadCriticalPages = () => {
       const criticalRoutes: Record<string, string[]> = {
         '/': ['@/pages/Atendimento'],
         '/painel': ['@/pages/Atendimento'],
-        '/auth': ['@/pages/Dashboard']
+        '/auth': ['@/pages/Painel']
       };
 
       const routesToPreload = criticalRoutes[currentPath] || [];
