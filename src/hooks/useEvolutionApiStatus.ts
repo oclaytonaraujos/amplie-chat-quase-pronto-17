@@ -86,19 +86,35 @@ export function useEvolutionApiStatus() {
 
   const updateInstanceStatusInDB = useCallback(async (instanceName: string, status: InstanceStatus) => {
     try {
+      const mappedState = status.status === 'connected' ? 'open' : status.status === 'disconnected' ? 'close' : status.status;
+
+      const updateData: any = {
+        status: mappedState,
+        connection_state: mappedState,
+        numero: status.numero,
+        profile_picture_url: status.profilePicture,
+        updated_at: new Date().toISOString(),
+        ...(mappedState === 'open' ? { last_connected_at: new Date().toISOString(), qr_code: null } : {})
+      };
+
       const { error } = await supabase
         .from('evolution_api_config')
-        .update({
-          status: status.status,
-          numero: status.numero,
-          profile_picture_url: status.profilePicture,
-          last_connected_at: status.status === 'connected' ? new Date().toISOString() : undefined
-        })
+        .update(updateData)
         .eq('instance_name', instanceName);
 
       if (error) {
         console.error('Erro ao atualizar status no banco:', error);
       }
+
+      // Espelhar também na tabela whatsapp_connections, quando existir relacionamento por evolution_instance_name
+      await supabase
+        .from('whatsapp_connections')
+        .update({
+          evolution_status: mappedState,
+          status: mappedState === 'open' ? 'connected' : mappedState === 'close' ? 'disconnected' : mappedState,
+          updated_at: new Date().toISOString()
+        })
+        .eq('evolution_instance_name', instanceName);
     } catch (error) {
       console.error('Erro ao atualizar status no banco:', error);
     }

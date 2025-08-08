@@ -51,7 +51,10 @@ export const useWhatsAppConnectionCheck = (instanceName?: string): UseWhatsAppCo
       if (evolutionStatus?.instance) {
         const realStatus = evolutionStatus.instance.state as ConnectionStatus;
         const realQrCode = evolutionStatus.instance.qrcode;
-        const realNumero = evolutionStatus.instance.profileName;
+        const realNumero =
+          evolutionStatus.instance.ownerJid?.split?.('@')[0] ||
+          evolutionStatus.instance.owner?.jid?.split?.('@')[0] ||
+          undefined;
         const realProfileName = evolutionStatus.instance.profileName;
 
         // Atualizar no banco se houver mudanças
@@ -64,6 +67,7 @@ export const useWhatsAppConnectionCheck = (instanceName?: string): UseWhatsAppCo
             .from('evolution_api_config')
             .update({
               status: realStatus,
+              connection_state: realStatus,
               qr_code: realQrCode,
               numero: realNumero,
               profile_name: realProfileName,
@@ -71,6 +75,18 @@ export const useWhatsAppConnectionCheck = (instanceName?: string): UseWhatsAppCo
               ...(realStatus === 'open' && { last_connected_at: new Date().toISOString() })
             })
             .eq('instance_name', instanceName);
+
+          // Sincronizar também na tabela whatsapp_connections (se existir vínculo)
+          await supabase
+            .from('whatsapp_connections')
+            .update({
+              evolution_status: realStatus,
+              status: realStatus === 'open' ? 'connected' : realStatus === 'close' ? 'disconnected' : realStatus,
+              evolution_qr_code: realQrCode ?? null,
+              numero: realNumero ?? null,
+              updated_at: new Date().toISOString()
+            })
+            .eq('evolution_instance_name', instanceName);
         }
 
         setStatus(realStatus);

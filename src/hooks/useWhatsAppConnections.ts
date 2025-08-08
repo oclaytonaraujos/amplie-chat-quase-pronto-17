@@ -137,11 +137,21 @@ export function useWhatsAppConnections() {
     };
   }, [user]);
 
+  const isConnectedStatus = (s?: string | null) => {
+    if (!s) return false;
+    const v = String(s).toLowerCase();
+    return v === 'open' || v === 'connected' || v === 'conectado';
+  };
+
   return {
     connections,
     loading,
-    connectedConnections: connections.filter(conn => conn.status === 'conectado'),
-    hasConnectedWhatsApp: connections.some(conn => conn.status === 'conectado'),
+    connectedConnections: connections.filter(conn =>
+      isConnectedStatus(conn.status) || isConnectedStatus((conn as any).evolution_status)
+    ),
+    hasConnectedWhatsApp: connections.some(conn =>
+      isConnectedStatus(conn.status) || isConnectedStatus((conn as any).evolution_status)
+    ),
     updateConnection,
     createConnection,
     refreshConnections: fetchConnections,
