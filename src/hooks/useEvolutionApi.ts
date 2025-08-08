@@ -167,25 +167,40 @@ export function useEvolutionApi() {
   // Deletar instância
   const deleteInstance = useCallback(async (instanceName: string) => {
     try {
-      // Deletar da Evolution API
-      await makeApiRequest(`/instance/delete/${instanceName}`, {
-        method: 'DELETE'
-      });
+      let evolutionError: Error | null = null;
 
-      // Deletar do banco
-      await supabase
+      // Tentar deletar da Evolution API, mas seguir com a remoção local mesmo em caso de erro/404
+      try {
+        await makeApiRequest(`/instance/delete/${instanceName}`, {
+          method: 'DELETE'
+        });
+      } catch (err) {
+        evolutionError = err as Error;
+        logger.warn?.(
+          'Evolution API: instância não encontrada ou erro ao deletar. Prosseguindo com exclusão local',
+          { metadata: { instanceName } },
+          evolutionError
+        );
+      }
+
+      // Deletar do banco SEMPRE
+      const { error: dbError } = await supabase
         .from('evolution_api_config')
         .delete()
         .eq('instance_name', instanceName);
+
+      if (dbError) throw dbError;
 
       await loadInstances();
 
       toast({
         title: "Instância excluída",
-        description: `Instância ${instanceName} excluída com sucesso`,
+        description: evolutionError
+          ? `Instância removida localmente. Não encontrada na Evolution (${instanceName}).`
+          : `Instância ${instanceName} excluída com sucesso`,
       });
     } catch (error) {
-      logger.error('Erro ao deletar instância', {}, error as Error);
+      logger.error('Erro ao deletar instância localmente', { metadata: { instanceName } }, error as Error);
       toast({
         title: "Erro ao excluir instância",
         description: (error as Error).message,

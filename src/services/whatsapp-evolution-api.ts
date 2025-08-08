@@ -290,12 +290,17 @@ export class WhatsAppEvolutionApiService {
    */
   async deleteInstance(instanceName: string): Promise<boolean> {
     try {
-      // Remover da Evolution API
-      await this.makeRequest(`/instance/delete/${instanceName}`, {
-        method: 'DELETE'
-      });
+      // Tentar remover na Evolution API, mas prosseguir mesmo em caso de erro/404
+      try {
+        await this.makeRequest(`/instance/delete/${instanceName}`, {
+          method: 'DELETE'
+        });
+      } catch (err) {
+        // Ignorar erros da Evolution (ex.: 404 Not Found / instância inexistente)
+        // A remoção local deve prosseguir para manter consistência do sistema
+      }
 
-      // Remover do banco de dados
+      // Remover do banco de dados (sempre)
       const { error } = await supabase
         .from('evolution_api_config')
         .delete()
