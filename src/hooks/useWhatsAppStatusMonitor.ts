@@ -24,7 +24,7 @@ export function useWhatsAppStatusMonitor(options: StatusMonitorOptions = {}) {
         .from('evolution_api_global_config')
         .select('*')
         .eq('ativo', true)
-        .single();
+        .maybeSingle();
 
       if (!globalConfig) {
         logger.warn('Configuração global Evolution API não encontrada', {
@@ -62,9 +62,13 @@ export function useWhatsAppStatusMonitor(options: StatusMonitorOptions = {}) {
             
             if (statusData.instance) {
               const currentState = statusData.instance.state;
-              
-              // Só atualizar se o status realmente mudou
-              if (currentState !== instance.status) {
+              const newQrCode = statusData.instance.qrcode ?? null;
+
+              // Atualizar quando status OU QR code mudarem
+              const shouldUpdate =
+                currentState !== instance.status || newQrCode !== instance.qr_code;
+
+              if (shouldUpdate) {
                 const updateData: any = {
                   status: currentState,
                   connection_state: currentState,
@@ -75,7 +79,7 @@ export function useWhatsAppStatusMonitor(options: StatusMonitorOptions = {}) {
                 if (currentState === 'open') {
                   updateData.qr_code = null;
                   updateData.last_connected_at = new Date().toISOString();
-                  
+
                   if (statusData.instance.profileName) {
                     updateData.profile_name = statusData.instance.profileName;
                   }
@@ -85,9 +89,14 @@ export function useWhatsAppStatusMonitor(options: StatusMonitorOptions = {}) {
                   if (statusData.instance.ownerJid) {
                     updateData.numero = statusData.instance.ownerJid.split('@')[0];
                   }
+                } else {
+                  // Enquanto não conectado, persistir QR code quando disponível
+                  if (newQrCode) {
+                    updateData.qr_code = newQrCode;
+                  }
                 }
 
-                // Se desconectou, limpar QR code
+                // Se desconectou, garantir limpeza do QR code
                 if (currentState === 'close') {
                   updateData.qr_code = null;
                 }
@@ -97,12 +106,13 @@ export function useWhatsAppStatusMonitor(options: StatusMonitorOptions = {}) {
                   .update(updateData)
                   .eq('id', instance.id);
 
-                logger.info('Status da instância atualizado automaticamente', {
+                logger.info('Instância verificada automaticamente', {
                   component: 'useWhatsAppStatusMonitor',
                   metadata: {
                     instanceName: instance.instance_name,
                     oldStatus: instance.status,
-                    newStatus: currentState
+                    newStatus: currentState,
+                    qrUpdated: newQrCode !== instance.qr_code && currentState !== 'open'
                   }
                 });
               }

@@ -68,7 +68,7 @@ export const useWhatsAppConnectionCheck = (instanceName?: string): UseWhatsAppCo
             .update({
               status: realStatus,
               connection_state: realStatus,
-              qr_code: realQrCode,
+              qr_code: realStatus === 'open' ? null : realQrCode,
               numero: realNumero,
               profile_name: realProfileName,
               updated_at: new Date().toISOString(),
@@ -90,7 +90,7 @@ export const useWhatsAppConnectionCheck = (instanceName?: string): UseWhatsAppCo
         }
 
         setStatus(realStatus);
-        setQrCode(realQrCode);
+        setQrCode(realStatus === 'open' ? undefined : realQrCode);
         setNumero(realNumero);
         setProfileName(realProfileName);
       }
@@ -110,10 +110,11 @@ export const useWhatsAppConnectionCheck = (instanceName?: string): UseWhatsAppCo
     
     checkConnection();
     
-    const interval = setInterval(checkConnection, 30000); // Check every 30 seconds
+    const intervalMs = status === 'open' ? 30000 : 3000; // Rápido enquanto conecta, lento após conectado
+    const interval = setInterval(checkConnection, intervalMs);
     
     return () => clearInterval(interval);
-  }, [checkConnection, instanceName, isServiceAvailable]);
+  }, [checkConnection, instanceName, isServiceAvailable, status]);
 
   // Real-time subscription para mudanças na instância específica
   useEffect(() => {
