@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ConnectionMonitor } from '@/components/monitoring/ConnectionMonitor';
+import { UnifiedWhatsAppDashboard } from '@/components/whatsapp/UnifiedWhatsAppDashboard';
 import { ConnectionMetrics } from '@/components/monitoring/ConnectionMetrics';
 import { Activity, BarChart3 } from 'lucide-react';
 
@@ -27,7 +27,7 @@ export default function MonitorConexoes() {
         </TabsList>
 
         <TabsContent value="monitor">
-          <ConnectionMonitor />
+          <UnifiedWhatsAppDashboard />
         </TabsContent>
 
         <TabsContent value="metrics">
