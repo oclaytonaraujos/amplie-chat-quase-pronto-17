@@ -1,151 +1,169 @@
 
-import { Settings, MessageSquare, Clock, Globe, Shield, Users } from 'lucide-react';
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart3, MessageSquare, Users, TrendingUp, Shield, Activity } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { WhatsAppConnectionManager } from '@/components/whatsapp/WhatsAppConnectionManager';
+import { Link } from 'react-router-dom';
 
 export default function Painel() {
+  const { user } = useAuth();
+
+  const quickStats = [
+    {
+      title: "Conversas Ativas",
+      value: "12",
+      description: "Conversas em andamento",
+      icon: MessageSquare,
+      color: "text-blue-600"
+    },
+    {
+      title: "Contatos",
+      value: "234",
+      description: "Total de contatos",
+      icon: Users,
+      color: "text-green-600"
+    },
+    {
+      title: "Taxa de Resposta",
+      value: "98%",
+      description: "Últimas 24h",
+      icon: TrendingUp,
+      color: "text-purple-600"
+    },
+    {
+      title: "Sistema",
+      value: "Online",
+      description: "Todos os serviços ativos",
+      icon: Activity,
+      color: "text-emerald-600"
+    }
+  ];
+
+  const quickActions = [
+    {
+      title: "Atendimento",
+      description: "Acesse a central de atendimento",
+      href: "/atendimento",
+      icon: MessageSquare
+    },
+    {
+      title: "Contatos",
+      description: "Gerencie seus contatos",
+      href: "/contatos",
+      icon: Users
+    },
+    {
+      title: "Dashboard",
+      description: "Veja métricas detalhadas",
+      href: "/dashboard",
+      icon: BarChart3
+    },
+    {
+      title: "ChatBot",
+      description: "Configure automações",
+      href: "/chatbot",
+      icon: Shield
+    }
+  ];
+
   return (
-    <div className="p-6 space-y-6">
-      {/* Conexões WhatsApp */}
-      <WhatsAppConnectionManager />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Controle de Atendimentos */}
-        <div className="bg-card rounded-xl shadow-sm border p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Users className="w-5 h-5 text-blue-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900">Controle de Atendimentos</h3>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Limite de Mensagens em Aberto por Agente
-              </label>
-              <Input 
-                type="number" 
-                min="1" 
-                max="20" 
-                defaultValue="5" 
-                placeholder="5"
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                Número máximo de conversas ativas que cada agente pode ter simultaneamente
-              </p>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-sm font-medium text-gray-700">Receber Transferências Mesmo no Limite</span>
-                <p className="text-xs text-gray-500">Permitir que agentes recebam transferências mesmo atingindo o limite</p>
-              </div>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-sm font-medium text-gray-700">Distribuição Automática</span>
-                <p className="text-xs text-gray-500">Distribuir novos atendimentos automaticamente entre agentes disponíveis</p>
-              </div>
-              <Switch />
-            </div>
-          </div>
-        </div>
-
-        {/* Mensagens Automáticas */}
-        <div className="bg-card rounded-xl shadow-sm border p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <MessageSquare className="w-5 h-5 text-purple-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900">Mensagens Automáticas</h3>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Mensagem de Boas-vindas</label>
-              <Input placeholder="Olá! Como posso ajudá-lo hoje?" />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Fora do Expediente</label>
-              <Input placeholder="Estamos fora do horário de atendimento..." />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Transferência de Setor</label>
-              <Input placeholder="Você está sendo transferido para..." />
-            </div>
-          </div>
-        </div>
-
-        {/* Horário de Expediente */}
-        <div className="bg-card rounded-xl shadow-sm border p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-orange-100 rounded-lg">
-              <Clock className="w-5 h-5 text-orange-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900">Horário de Expediente</h3>
-          </div>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Início</label>
-                <Input type="time" defaultValue="08:00" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Término</label>
-                <Input type="time" defaultValue="18:00" />
-              </div>
-            </div>
-            <div className="space-y-3">
-              {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'].map((dia) => (
-                <div key={dia} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">{dia}</span>
-                  <Switch defaultChecked={!['Sábado', 'Domingo'].includes(dia)} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Configurações Gerais */}
-        <div className="bg-card rounded-xl shadow-sm border p-6">
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-gray-100 rounded-lg">
-              <Globe className="w-5 h-5 text-gray-600" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900">Configurações Gerais</h3>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Idioma do Sistema</label>
-              <select className="w-full p-2 border border-input rounded-lg focus:ring-2 focus:ring-ring focus:border-transparent bg-background">
-                <option>Português (Brasil)</option>
-                <option>English (US)</option>
-                <option>Español</option>
-              </select>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Notificações Sonoras</span>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Atualização Automática</span>
-              <Switch defaultChecked />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-700">Modo Escuro</span>
-              <Switch />
-            </div>
-          </div>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Bem-vindo de volta, {user?.user_metadata?.nome || user?.email?.split('@')[0]}!
+        </h1>
+        <p className="text-muted-foreground mt-2">
+          Aqui está um resumo das suas atividades
+        </p>
       </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <Button className="px-8">
-          Salvar Configurações
-        </Button>
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {quickStats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  {stat.title}
+                </CardTitle>
+                <Icon className={`h-4 w-4 ${stat.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground">
+                  {stat.description}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ações Rápidas</CardTitle>
+          <CardDescription>
+            Acesse rapidamente as principais funcionalidades do sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <Link key={index} to={action.href}>
+                  <Button 
+                    variant="outline" 
+                    className="h-auto w-full p-4 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="flex flex-col items-center gap-2 text-center">
+                      <Icon className="h-6 w-6" />
+                      <div>
+                        <div className="font-medium">{action.title}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {action.description}
+                        </div>
+                      </div>
+                    </div>
+                  </Button>
+                </Link>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Recent Activity */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Atividade Recente</CardTitle>
+          <CardDescription>
+            Últimas ações no sistema
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Sistema iniciado com sucesso</p>
+                <p className="text-xs text-muted-foreground">Há 5 minutos</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4 p-4 bg-muted/20 rounded-lg">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">Usuário autenticado</p>
+                <p className="text-xs text-muted-foreground">Há 6 minutos</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
