@@ -31,35 +31,10 @@ Deno.serve(async (req) => {
 
     if (userExists) {
       console.log('Usuário super admin já existe')
-      
-      // Verificar se o perfil existe
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userExists.id)
-        .single()
-      
-      if (!profile) {
-        console.log('Criando perfil para super admin existente...')
-        // Criar perfil se não existir
-        await supabase.from('profiles').insert({
-          id: userExists.id,
-          nome: 'Super Administrador',
-          email: email,
-          empresa_id: '00000000-0000-0000-0000-000000000001', // UUID padrão para Amplie
-          cargo: 'super_admin',
-          setor: 'administracao',
-          status: 'ativo',
-          permissoes: ['all'],
-          limite_atendimentos: 999999,
-          aceita_novos_atendimentos: true
-        })
-      }
-      
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Super admin já existe e está configurado',
+          message: 'Super admin já existe',
           user_id: userExists.id 
         }),
         { 
@@ -71,34 +46,16 @@ Deno.serve(async (req) => {
 
     console.log('Criando usuário super admin...')
 
-    // Garantir que existe uma empresa padrão para Amplie
-    let empresaId = '00000000-0000-0000-0000-000000000001'
-    
-    const { data: empresaExiste } = await supabase
+    // Buscar empresa Amplie Marketing
+    const { data: empresa, error: empresaError } = await supabase
       .from('empresas')
       .select('id')
-      .eq('id', empresaId)
+      .eq('email', email)
       .single()
 
-    if (!empresaExiste) {
-      console.log('Criando empresa Amplie Marketing...')
-      const { error: empresaError } = await supabase.from('empresas').insert({
-        id: empresaId,
-        nome: 'Amplie Marketing',
-        email: email,
-        telefone: '+55 11 99999-9999',
-        cnpj: '00.000.000/0001-00',
-        endereco: 'São Paulo, SP',
-        ativo: true,
-        plano: 'enterprise',
-        limite_usuarios: 999999,
-        limite_whatsapp_connections: 999999
-      })
-      
-      if (empresaError) {
-        console.error('Erro ao criar empresa:', empresaError)
-        throw new Error('Erro ao criar empresa padrão')
-      }
+    if (empresaError) {
+      console.error('Erro ao buscar empresa:', empresaError)
+      throw new Error('Empresa não encontrada')
     }
 
     // Criar usuário no auth
@@ -108,7 +65,7 @@ Deno.serve(async (req) => {
       email_confirm: true,
       user_metadata: {
         nome: 'Super Administrador',
-        empresa_id: empresaId,
+        empresa_id: empresa.id,
         cargo: 'super_admin'
       }
     })
@@ -120,31 +77,11 @@ Deno.serve(async (req) => {
 
     console.log('Usuário super admin criado com sucesso:', authData.user?.id)
 
-    // Criar perfil do super admin
-    const { error: profileError } = await supabase.from('profiles').insert({
-      id: authData.user!.id,
-      nome: 'Super Administrador',
-      email: email,
-      empresa_id: empresaId,
-      cargo: 'super_admin',
-      setor: 'administracao',
-      status: 'ativo',
-      permissoes: ['all'],
-      limite_atendimentos: 999999,
-      aceita_novos_atendimentos: true
-    })
-
-    if (profileError) {
-      console.error('Erro ao criar perfil:', profileError)
-      // Não falhar aqui pois o trigger pode criar o perfil
-    }
-
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Super admin criado com sucesso',
-        user_id: authData.user?.id,
-        credentials: { email, password }
+        user_id: authData.user?.id 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

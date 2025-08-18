@@ -148,8 +148,7 @@ export default function Auth() {
     const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname.includes('.lovable.app');
     if (isDevelopment) {
       setEmail('ampliemarketing.mkt@gmail.com');
-      setPassword('Amplie123@');
-      console.log('Credenciais preenchidas - Email:', 'ampliemarketing.mkt@gmail.com');
+      setPassword('Amplie123@'); // TODO: Remover credenciais hardcoded
     } else {
       console.warn('Credenciais de desenvolvimento não disponíveis em produção');
     }
