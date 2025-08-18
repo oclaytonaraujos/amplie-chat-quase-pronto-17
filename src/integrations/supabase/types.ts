@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -3132,11 +3132,11 @@ export type Database = {
     }
     Functions: {
       assumir_conversa: {
-        Args: { p_conversa_id: string; p_agente_id: string }
+        Args: { p_agente_id: string; p_conversa_id: string }
         Returns: boolean
       }
       assumir_conversa_atomico: {
-        Args: { p_conversa_id: string; p_agente_id: string }
+        Args: { p_agente_id: string; p_conversa_id: string }
         Returns: boolean
       }
       can_access_profile: {
@@ -3166,20 +3166,20 @@ export type Database = {
       create_notification: {
         Args:
           | {
-              p_user_id: string
-              p_empresa_id: string
-              p_title: string
-              p_message: string
-              p_type?: string
-              p_data?: Json
-            }
-          | {
-              title: string
+              data?: Json
+              empresa_id?: string
               message: string
               notification_type?: string
+              title: string
               user_id?: string
-              empresa_id?: string
-              data?: Json
+            }
+          | {
+              p_data?: Json
+              p_empresa_id: string
+              p_message: string
+              p_title: string
+              p_type?: string
+              p_user_id: string
             }
         Returns: string
       }
@@ -3196,14 +3196,14 @@ export type Database = {
         Returns: undefined
       }
       finalizar_atendimento: {
-        Args: { p_conversa_id: string; p_agente_id: string }
+        Args: { p_agente_id: string; p_conversa_id: string }
         Returns: boolean
       }
       get_next_queue_message: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
           correlation_id: string
+          id: string
           message_type: string
           payload: Json
           retry_count: number
@@ -3212,11 +3212,11 @@ export type Database = {
       get_queue_status: {
         Args: Record<PropertyKey, never>
         Returns: {
+          failed_with_retries: number
+          oldest_pending_age: unknown
+          total_failed: number
           total_pending: number
           total_processing: number
-          total_failed: number
-          oldest_pending_age: unknown
-          failed_with_retries: number
         }[]
       }
       increment_setor_atendimentos: {
@@ -3235,46 +3235,46 @@ export type Database = {
         Args: { p_empresa_id: string; p_setor_preferido?: string }
         Returns: {
           agente_id: string
-          nome: string
-          setor: string
-          cargo: string
           atendimentos_ativos: number
-          limite_atendimentos: number
+          cargo: string
           disponivel: boolean
+          limite_atendimentos: number
+          nome: string
           prioridade: number
+          setor: string
         }[]
       }
       obter_atendimentos_priorizados: {
         Args: { p_agente_id: string; p_empresa_id: string }
         Returns: {
-          id: string
-          contato_id: string
           agente_id: string
-          status: string
+          agente_nome: string
           canal: string
-          prioridade: string
-          setor: string
-          tags: string[]
-          created_at: string
-          updated_at: string
+          contato_id: string
           contato_nome: string
           contato_telefone: string
-          agente_nome: string
+          created_at: string
           eh_meu_atendimento: boolean
+          id: string
+          prioridade: string
+          setor: string
+          status: string
+          tags: string[]
+          updated_at: string
         }[]
       }
       registrar_distribuicao_atendimento: {
         Args: {
-          p_conversa_id: string
-          p_empresa_id: string
           p_agente_anterior_id: string
           p_agente_novo_id: string
-          p_motivo: string
-          p_metodo_distribuicao?: string
+          p_conversa_id: string
+          p_created_by?: string
           p_dados_agentes?: Json
+          p_empresa_id: string
+          p_metodo_distribuicao?: string
+          p_motivo: string
           p_resultado?: string
           p_tempo_resposta_ms?: number
-          p_created_by?: string
         }
         Returns: undefined
       }
@@ -3291,7 +3291,7 @@ export type Database = {
         Returns: undefined
       }
       update_instance_stats: {
-        Args: { p_instance_id: string; p_type: string; p_increment?: number }
+        Args: { p_increment?: number; p_instance_id: string; p_type: string }
         Returns: undefined
       }
     }

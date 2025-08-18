@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useWhatsAppManager } from '@/hooks/useWhatsAppManager';
 import { CreateInstanceDialog } from './CreateInstanceDialog';
+import { WhatsAppInstanceCard } from './WhatsAppInstanceCard';
 
 interface QRModalProps {
   open: boolean;
@@ -316,96 +317,20 @@ export function UnifiedWhatsAppDashboard() {
           </Card>
         ) : (
           instances.map((instance) => {
-            const statusInfo = getStatusInfo(instance.status);
             const isConnecting = connecting.has(instance.instance_name);
             
             return (
-              <Card key={instance.id} className={`border-l-4 ${statusInfo.bgColor}`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-white rounded-lg border">
-                        <Smartphone className="w-5 h-5 text-green-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">{instance.instance_name}</CardTitle>
-                        <CardDescription>
-                          {instance.numero ? `WhatsApp: ${instance.numero}` : 'Número não conectado'}
-                          {instance.profile_name && ` • ${instance.profile_name}`}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    <Badge className={statusInfo.color}>
-                      {statusInfo.icon}
-                      <span className="ml-1">{statusInfo.text}</span>
-                    </Badge>
-                  </div>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
-                      <p>Criado: {new Date(instance.created_at).toLocaleDateString('pt-BR')}</p>
-                      {instance.last_connected_at && (
-                        <p>Última conexão: {new Date(instance.last_connected_at).toLocaleString('pt-BR')}</p>
-                      )}
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      {instance.status === 'open' ? (
-                        <Button
-                          onClick={() => handleDisconnect(instance.instance_name)}
-                          variant="outline"
-                          size="sm"
-                        >
-                          <WifiOff className="w-4 h-4 mr-2" />
-                          Desconectar
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() => handleConnect(instance.instance_name)}
-                          disabled={isConnecting}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isConnecting ? (
-                            <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                          ) : (
-                            <Wifi className="w-4 h-4 mr-2" />
-                          )}
-                          {isConnecting ? 'Conectando...' : 'Conectar'}
-                        </Button>
-                      )}
-                      
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Excluir instância</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Tem certeza que deseja excluir a instância <strong>{instance.instance_name}</strong>?
-                              Esta ação não pode ser desfeita.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDelete(instance.instance_name)}
-                              className="bg-red-600 hover:bg-red-700"
-                            >
-                              Excluir
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <WhatsAppInstanceCard
+                key={instance.id}
+                instance={instance}
+                isConnecting={isConnecting}
+                onConnect={handleConnect}
+                onDisconnect={handleDisconnect}
+                onDelete={handleDelete}
+                onShowQR={(qrCode, instanceName) => 
+                  setQrModal({ open: true, qrCode, instanceName })
+                }
+              />
             );
           })
         )}
