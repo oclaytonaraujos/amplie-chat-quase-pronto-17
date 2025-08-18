@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Settings, Edit, Save, X, MessageSquare, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useEvolutionApiConfig } from '@/contexts/EvolutionApiContext';
+import { EventsDashboard } from '@/components/admin/EventsDashboard';
 interface EvolutionConfig {
   id?: string;
   server_url: string;
@@ -265,6 +266,11 @@ export default function IntegracaoSimples() {
 
       {/* Card de gerenciamento de instâncias */}
       {isConfigured}
+
+      {/* Events Dashboard - mostrar quando N8N estiver habilitado */}
+      {configGlobal.n8n_mode_enabled && (
+        <EventsDashboard />
+      )}
 
       {/* Aviso se não estiver conectado */}
       {!isConfigured && <Card className="border-yellow-200 bg-yellow-50">

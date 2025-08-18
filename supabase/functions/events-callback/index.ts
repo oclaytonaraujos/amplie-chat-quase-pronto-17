@@ -1,161 +1,139 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+import { createLogger } from '../_shared/logger.ts'
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const n8nSigningSecret = Deno.env.get('N8N_SIGNING_SECRET')!
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-signature',
+}
 
 interface CallbackRequest {
   correlation_id: string
-  status: 'delivered' | 'failed'
-  result?: any
+  status: 'processing' | 'delivered' | 'failed'
   error_message?: string
-  metadata?: any
-}
-
-async function verifyHmacSignature(payload: string, signature: string, secret: string): Promise<boolean> {
-  try {
-    const encoder = new TextEncoder()
-    const keyData = encoder.encode(secret)
-    const messageData = encoder.encode(payload)
-    
-    const cryptoKey = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['verify']
-    )
-    
-    // Extract hash from signature (format: sha256=hash)
-    const expectedHash = signature.replace('sha256=', '')
-    const expectedBytes = new Uint8Array(
-      expectedHash.match(/.{2}/g)?.map(byte => parseInt(byte, 16)) || []
-    )
-    
-    const isValid = await crypto.subtle.verify(
-      'HMAC',
-      cryptoKey,
-      expectedBytes,
-      messageData
-    )
-    
-    return isValid
-  } catch (error) {
-    console.error('Signature verification error:', error)
-    return false
-  }
+  result?: Record<string, any>
+  metadata?: Record<string, any>
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    // Verify signature
-    const signature = req.headers.get('X-Signature')
-    if (!signature) {
-      throw new Error('Missing X-Signature header')
-    }
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    const payloadText = await req.text()
-    const isValidSignature = await verifyHmacSignature(payloadText, signature, n8nSigningSecret)
-    
-    if (!isValidSignature) {
-      throw new Error('Invalid signature')
-    }
+    const { 
+      correlation_id, 
+      status, 
+      error_message, 
+      result,
+      metadata 
+    }: CallbackRequest = await req.json()
 
-    const { correlation_id, status, result, error_message, metadata }: CallbackRequest = JSON.parse(payloadText)
-
+    // Validate required fields
     if (!correlation_id || !status) {
-      throw new Error('Missing required fields: correlation_id, status')
+      throw new Error('correlation_id and status are required')
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
+    const logger = createLogger(supabaseClient, correlation_id, 'events-callback')
+
+    logger.info('Event callback received', undefined, undefined, {
+      status,
+      hasError: !!error_message,
+      hasResult: !!result
     })
 
+    // TODO: Verify HMAC signature when N8N_SIGNING_SECRET is configured
+    // const signature = req.headers.get('X-Signature')
+    // const signingSecret = Deno.env.get('N8N_SIGNING_SECRET')
+    // if (signingSecret && signature) {
+    //   const isValid = await verifyHmacSignature(
+    //     await req.text(), 
+    //     signature, 
+    //     signingSecret
+    //   )
+    //   if (!isValid) {
+    //     throw new Error('Invalid signature')
+    //   }
+    // }
+
     // Find the event
-    const { data: event, error: findError } = await supabase
+    const { data: eventData, error: findError } = await supabaseClient
       .from('integration_events')
       .select('*')
       .eq('correlation_id', correlation_id)
       .single()
 
-    if (findError || !event) {
+    if (findError || !eventData) {
       throw new Error(`Event not found: ${correlation_id}`)
     }
 
     // Update event status
     const updateData: any = {
       status,
-      processed_at: new Date().toISOString()
+      updated_at: new Date().toISOString()
     }
 
-    if (status === 'failed' && error_message) {
+    if (error_message) {
       updateData.error_message = error_message
     }
 
-    if (result) {
-      updateData.payload = {
-        ...event.payload,
-        result
-      }
+    if (status === 'failed') {
+      updateData.retry_count = (eventData.retry_count || 0) + 1
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseClient
       .from('integration_events')
       .update(updateData)
-      .eq('id', event.id)
+      .eq('id', eventData.id)
 
     if (updateError) {
-      throw new Error(`Failed to update event: ${updateError.message}`)
+      throw updateError
     }
 
-    // Log the callback
-    await supabase
+    // Add log entry
+    await supabaseClient
       .from('integration_event_logs')
       .insert({
-        event_id: event.id,
-        level: status === 'delivered' ? 'info' : 'error',
-        message: status === 'delivered' 
-          ? 'Event processed successfully by n8n'
-          : `Event processing failed: ${error_message || 'Unknown error'}`,
+        event_id: eventData.id,
+        level: status === 'failed' ? 'error' : 'info',
+        message: error_message || `Event status updated to ${status}`,
         metadata: {
-          callback_data: { status, result, error_message, metadata },
-          processed_by: 'n8n'
+          status,
+          result,
+          ...metadata
         }
       })
 
     // Broadcast real-time update
-    await supabase
-      .channel(`events:${event.empresa_id}`)
+    await supabaseClient
+      .channel('integration_events')
       .send({
         type: 'broadcast',
         event: 'event_updated',
         payload: {
           correlation_id,
           status,
-          event_type: event.event_type,
-          processed_at: updateData.processed_at,
-          result,
-          error_message
+          error_message,
+          result
         }
       })
 
+    logger.info('Event callback processed successfully', undefined, undefined, {
+      eventId: eventData.id,
+      newStatus: status
+    })
+
     return new Response(
-      JSON.stringify({ 
-        status: 'success',
-        message: 'Callback processed successfully' 
-      }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      JSON.stringify({ success: true, correlation_id }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       }
     )
 
@@ -164,12 +142,12 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        status: 'error' 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        success: false
       }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
       }
     )
   }

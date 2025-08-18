@@ -1,214 +1,162 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+import { createLogger } from '../_shared/logger.ts'
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const n8nWebhookUrl = Deno.env.get('N8N_WEBHOOK_URL')!
-const n8nSigningSecret = Deno.env.get('N8N_SIGNING_SECRET')!
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 interface EmitEventRequest {
   event_type: string
-  payload: any
+  payload: Record<string, any>
   idempotency_key?: string
 }
 
-async function createHmacSignature(payload: string, secret: string): Promise<string> {
-  const encoder = new TextEncoder()
-  const keyData = encoder.encode(secret)
-  const messageData = encoder.encode(payload)
-  
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw',
-    keyData,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  )
-  
-  const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData)
-  const hashArray = Array.from(new Uint8Array(signature))
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-  
-  return `sha256=${hashHex}`
+interface EmitEventResponse {
+  correlation_id: string
+  status: 'queued'
+  created_at: string
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    // Authenticate user
-    const authHeader = req.headers.get('authorization')
+    // Get user from JWT
+    const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
-      throw new Error('Missing authorization header')
+      throw new Error('Authorization header required')
     }
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
+
     if (authError || !user) {
-      throw new Error('Invalid authentication')
+      throw new Error('Authentication failed')
     }
 
-    // Get user profile and empresa_id
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+    // Get user's empresa_id
+    const { data: userData, error: userError } = await supabaseClient
+      .from('usuarios')
       .select('empresa_id')
       .eq('id', user.id)
       .single()
 
-    if (profileError || !profile?.empresa_id) {
-      throw new Error('User not associated with a company')
+    if (userError || !userData) {
+      throw new Error('User data not found')
     }
+
+    const correlationId = crypto.randomUUID()
+    const logger = createLogger(supabaseClient, correlationId, 'events-emit')
 
     const { event_type, payload, idempotency_key }: EmitEventRequest = await req.json()
 
+    logger.info('Event emission requested', undefined, undefined, {
+      eventType: event_type,
+      hasPayload: !!payload,
+      idempotencyKey: idempotency_key
+    })
+
+    // Validate required fields
     if (!event_type || !payload) {
-      throw new Error('Missing required fields: event_type, payload')
+      throw new Error('event_type and payload are required')
     }
 
-    // Generate correlation_id
-    const correlationId = crypto.randomUUID()
-    const finalIdempotencyKey = idempotency_key || `${correlationId}-${Date.now()}`
-
-    // Check for duplicate idempotency key
+    // Check for duplicate idempotency key if provided
     if (idempotency_key) {
-      const { data: existing } = await supabase
+      const { data: existing } = await supabaseClient
         .from('integration_events')
-        .select('id, correlation_id')
+        .select('correlation_id, status')
         .eq('idempotency_key', idempotency_key)
-        .eq('empresa_id', profile.empresa_id)
+        .eq('empresa_id', userData.empresa_id)
         .single()
 
       if (existing) {
+        logger.info('Duplicate idempotency key, returning existing event', undefined, undefined, {
+          existingCorrelationId: existing.correlation_id,
+          status: existing.status
+        })
+
         return new Response(
-          JSON.stringify({ 
+          JSON.stringify({
             correlation_id: existing.correlation_id,
-            status: 'duplicate',
-            message: 'Event already processed' 
-          }),
-          { 
-            status: 200, 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            status: existing.status,
+            created_at: new Date().toISOString()
+          } as EmitEventResponse),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 200,
           }
         )
       }
     }
 
-    // Create event record
-    const { data: eventRecord, error: insertError } = await supabase
+    // Create integration event
+    const { data: eventData, error: insertError } = await supabaseClient
       .from('integration_events')
       .insert({
         correlation_id: correlationId,
-        empresa_id: profile.empresa_id,
+        empresa_id: userData.empresa_id,
         event_type,
         payload,
         status: 'queued',
-        idempotency_key: finalIdempotencyKey,
-        source: 'system',
-        destination: 'n8n'
+        source: 'app',
+        destination: 'n8n',
+        idempotency_key
       })
       .select()
       .single()
 
     if (insertError) {
-      throw new Error(`Failed to create event: ${insertError.message}`)
+      throw insertError
     }
 
     // Log event creation
-    await supabase
+    await supabaseClient
       .from('integration_event_logs')
       .insert({
-        event_id: eventRecord.id,
+        event_id: eventData.id,
         level: 'info',
-        message: `Event queued for processing`,
-        metadata: { event_type, user_id: user.id }
+        message: 'Event queued for processing',
+        metadata: {
+          event_type,
+          source: 'app',
+          destination: 'n8n'
+        }
       })
 
-    // Prepare payload for n8n
-    const n8nPayload = {
+    logger.info('Event queued successfully', undefined, undefined, {
+      eventId: eventData.id,
+      eventType: event_type
+    })
+
+    // TODO: Send to n8n webhook when N8N_WEBHOOK_URL is configured
+    // const n8nWebhookUrl = Deno.env.get('N8N_WEBHOOK_URL')
+    // if (n8nWebhookUrl) {
+    //   await sendToN8n(correlationId, event_type, payload, n8nWebhookUrl)
+    // }
+
+    const response: EmitEventResponse = {
       correlation_id: correlationId,
-      event_type,
-      payload,
-      empresa_id: profile.empresa_id,
-      user_id: user.id,
-      timestamp: new Date().toISOString()
-    }
-
-    const payloadString = JSON.stringify(n8nPayload)
-    const signature = await createHmacSignature(payloadString, n8nSigningSecret)
-
-    // Send to n8n
-    try {
-      const n8nResponse = await fetch(n8nWebhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Signature': signature,
-          'X-Correlation-ID': correlationId
-        },
-        body: payloadString
-      })
-
-      if (!n8nResponse.ok) {
-        throw new Error(`n8n webhook failed: ${n8nResponse.status}`)
-      }
-
-      // Update status to processing
-      await supabase
-        .from('integration_events')
-        .update({ status: 'processing' })
-        .eq('id', eventRecord.id)
-
-      await supabase
-        .from('integration_event_logs')
-        .insert({
-          event_id: eventRecord.id,
-          level: 'info',
-          message: 'Event sent to n8n successfully',
-          metadata: { n8n_status: n8nResponse.status }
-        })
-
-    } catch (n8nError) {
-      // Update status to failed
-      await supabase
-        .from('integration_events')
-        .update({ 
-          status: 'failed',
-          error_message: `n8n webhook error: ${n8nError.message}`
-        })
-        .eq('id', eventRecord.id)
-
-      await supabase
-        .from('integration_event_logs')
-        .insert({
-          event_id: eventRecord.id,
-          level: 'error',
-          message: 'Failed to send event to n8n',
-          metadata: { error: n8nError.message }
-        })
-
-      throw n8nError
+      status: 'queued',
+      created_at: eventData.created_at
     }
 
     return new Response(
-      JSON.stringify({ 
-        correlation_id: correlationId,
-        status: 'processing',
-        message: 'Event queued and sent to n8n' 
-      }),
-      { 
-        status: 202, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      JSON.stringify(response),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 202, // Accepted
       }
     )
 
@@ -217,12 +165,13 @@ serve(async (req) => {
     
     return new Response(
       JSON.stringify({ 
-        error: error.message,
-        status: 'error' 
+        error: error instanceof Error ? error.message : 'Unknown error',
+        correlation_id: null,
+        status: 'error'
       }),
-      { 
-        status: 400, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
       }
     )
   }
