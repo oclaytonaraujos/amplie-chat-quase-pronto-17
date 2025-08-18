@@ -15,7 +15,8 @@ import { WhatsAppConnectionProvider } from "@/contexts/WhatsAppConnectionContext
 import { useNavigationTracking } from "@/hooks/useNavigationTracking";
 
 // Lazy load componentes críticos - Layout NÃO lazy para manter navegação fluida
-const AuthProvider = lazy(() => import("@/hooks/useAuth").then(m => ({ default: m.AuthProvider })));
+// AuthProvider NÃO deve ser lazy para evitar problemas de hidratação
+import { AuthProvider } from "@/hooks/useAuth";
 // AdminAuthProvider NÃO deve ser lazy para evitar problemas na rota /admin
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 const ProtectedRoute = lazy(() => import("@/components/ProtectedRoute").then(m => ({ default: m.ProtectedRoute })));
