@@ -865,6 +865,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conversas_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conversas_contato_id_fkey"
             columns: ["contato_id"]
             isOneToOne: false
@@ -920,10 +927,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conversas_internas_participante_1_id_fkey"
+            columns: ["participante_1_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conversas_internas_participante_2_id_fkey"
             columns: ["participante_2_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversas_internas_participante_2_id_fkey"
+            columns: ["participante_2_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1480,6 +1501,13 @@ export type Database = {
             columns: ["remetente_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mensagens_internas_remetente_id_fkey"
+            columns: ["remetente_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2336,10 +2364,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transferencias_de_agente_id_fkey"
+            columns: ["de_agente_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transferencias_para_agente_id_fkey"
             columns: ["para_agente_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_para_agente_id_fkey"
+            columns: ["para_agente_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2659,6 +2701,13 @@ export type Database = {
             columns: ["agente_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_audio_calls_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3129,6 +3178,47 @@ export type Database = {
         }
         Relationships: []
       }
+      safe_profiles: {
+        Row: {
+          cargo: string | null
+          created_at: string | null
+          email: string | null
+          empresa_id: string | null
+          id: string | null
+          nome: string | null
+          setor: string | null
+          status: string | null
+        }
+        Insert: {
+          cargo?: string | null
+          created_at?: string | null
+          email?: never
+          empresa_id?: string | null
+          id?: string | null
+          nome?: string | null
+          setor?: string | null
+          status?: string | null
+        }
+        Update: {
+          cargo?: string | null
+          created_at?: string | null
+          email?: never
+          empresa_id?: string | null
+          id?: string | null
+          nome?: string | null
+          setor?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       assumir_conversa: {
@@ -3198,6 +3288,18 @@ export type Database = {
       finalizar_atendimento: {
         Args: { p_agente_id: string; p_conversa_id: string }
         Returns: boolean
+      }
+      get_current_user_safe: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          cargo: string
+          email: string
+          empresa_id: string
+          id: string
+          nome: string
+          setor: string
+          status: string
+        }[]
       }
       get_next_queue_message: {
         Args: Record<PropertyKey, never>
