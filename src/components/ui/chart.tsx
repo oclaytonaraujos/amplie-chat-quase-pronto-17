@@ -74,25 +74,45 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
     return null
   }
 
+  // SEGURANÇA: Sanitizar CSS para prevenir XSS
+  const sanitizeCSS = (css: string) => {
+    // Remove caracteres perigosos e scripts
+    return css
+      .replace(/<[^>]*>/g, '') // Remove tags HTML
+      .replace(/javascript:/gi, '') // Remove javascript:
+      .replace(/expression\s*\(/gi, '') // Remove CSS expressions
+      .replace(/import\s+/gi, '') // Remove @import
+      .replace(/@[^;]+;/g, ''); // Remove outras @ rules perigosas
+  };
+
+  const cssContent = Object.entries(THEMES)
+    .map(([theme, prefix]) => {
+      const themeStyles = colorConfig
+        .map(([key, itemConfig]) => {
+          const color =
+            itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
+            itemConfig.color;
+          
+          // Validar se é uma cor válida
+          if (!color || !/^(#[0-9a-f]{3,8}|rgba?\([^)]+\)|hsl\([^)]+\))$/i.test(color)) {
+            return null;
+          }
+          
+          return `  --color-${key.replace(/[^a-zA-Z0-9-_]/g, '')}: ${color};`;
+        })
+        .filter(Boolean)
+        .join('\n');
+
+      return `${prefix} [data-chart=${id}] {\n${themeStyles}\n}`;
+    })
+    .join('\n');
+
+  const sanitizedCSS = sanitizeCSS(cssContent);
+
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color =
-      itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
-      itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
-  })
-  .join("\n")}
-}
-`
-          )
-          .join("\n"),
+        __html: sanitizedCSS,
       }}
     />
   )

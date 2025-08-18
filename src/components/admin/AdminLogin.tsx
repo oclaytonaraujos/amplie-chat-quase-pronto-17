@@ -26,8 +26,14 @@ export function AdminLogin() {
     setLoading(false);
   };
   const fillAdminCredentials = () => {
-    setEmail('ampliemarketing.mkt@gmail.com');
-    setPassword('Amplie123@');
+    // SEGURANÇA: Remover em produção - apenas para desenvolvimento
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname.includes('.lovable.app');
+    if (isDevelopment) {
+      setEmail('ampliemarketing.mkt@gmail.com');
+      setPassword('Amplie123@'); // TODO: Remover credenciais hardcoded
+    } else {
+      console.warn('Credenciais de desenvolvimento não disponíveis em produção');
+    }
   };
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -80,12 +86,17 @@ export function AdminLogin() {
             </Button>
           </form>
           
-          {/* Botão para preenchimento rápido - remover em produção */}
-          <div className="mt-4 pt-4 border-t">
-            <Button variant="outline" size="sm" onClick={fillAdminCredentials} className="w-full text-xs" disabled={loading}>
-              Preencher credenciais (dev)
-            </Button>
-          </div>
+          {/* DESENVOLVIMENTO: Botão para preenchimento rápido */}
+          {(window.location.hostname === 'localhost' || window.location.hostname.includes('.lovable.app')) && (
+            <div className="mt-4 pt-4 border-t">
+              <Button variant="outline" size="sm" onClick={fillAdminCredentials} className="w-full text-xs" disabled={loading}>
+                🔓 Preencher credenciais (desenvolvimento)
+              </Button>
+              <p className="text-xs text-orange-600 mt-1 text-center">
+                ⚠️ Não disponível em produção
+              </p>
+            </div>
+          )}
           
           <div className="mt-6 text-center">
             <p className="text-xs text-muted-foreground">

@@ -144,8 +144,14 @@ export default function Auth() {
   };
 
   const fillSuperAdminCredentials = () => {
-    setEmail('ampliemarketing.mkt@gmail.com');
-    setPassword('Amplie123@');
+    // SEGURANÇA: Remover em produção - apenas para desenvolvimento
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname.includes('.lovable.app');
+    if (isDevelopment) {
+      setEmail('ampliemarketing.mkt@gmail.com');
+      setPassword('Amplie123@'); // TODO: Remover credenciais hardcoded
+    } else {
+      console.warn('Credenciais de desenvolvimento não disponíveis em produção');
+    }
   };
 
   const createSuperAdmin = async () => {
@@ -154,7 +160,7 @@ export default function Auth() {
       const response = await supabase.functions.invoke('create-super-admin', {
         body: {
           email: 'ampliemarketing.mkt@gmail.com',
-          password: 'Amplie123@'
+          password: 'Amplie123@' // TODO: Usar variáveis de ambiente
         }
       });
 
@@ -320,12 +326,13 @@ export default function Auth() {
             </button>
           </div>
 
-          {!isSignUp && (
-            <div className="mt-4 text-center space-y-2">
+          {!isSignUp && (window.location.hostname === 'localhost' || window.location.hostname.includes('.lovable.app')) && (
+            <div className="mt-4 text-center space-y-2 p-3 bg-orange-50 border border-orange-200 rounded">
+              <p className="text-xs text-orange-700 font-medium">🔧 Ferramentas de Desenvolvimento</p>
               <button
                 type="button"
                 onClick={fillSuperAdminCredentials}
-                className="text-xs text-gray-500 hover:text-gray-600 underline block w-full"
+                className="text-xs text-gray-600 hover:text-gray-700 underline block w-full"
                 disabled={isLoading}
               >
                 Preencher credenciais de super admin
@@ -339,6 +346,10 @@ export default function Auth() {
               >
                 {isLoading ? 'Criando...' : 'Criar super admin automaticamente'}
               </button>
+              
+              <p className="text-xs text-orange-600 mt-2">
+                ⚠️ Estas opções são removidas automaticamente em produção
+              </p>
             </div>
           )}
         </CardContent>

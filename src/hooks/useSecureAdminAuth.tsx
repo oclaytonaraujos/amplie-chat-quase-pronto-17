@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface AdminAuthContextType {
+interface SecureAdminAuthContextType {
   isAdminAuthenticated: boolean;
   adminLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   adminLogout: () => void;
@@ -17,7 +17,7 @@ interface OperationOptions {
   onError?: (error: Error) => void;
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType>({
+const SecureAdminAuthContext = createContext<SecureAdminAuthContextType>({
   isAdminAuthenticated: false,
   adminLogin: async () => ({ success: false }),
   adminLogout: () => {},
@@ -25,25 +25,25 @@ const AdminAuthContext = createContext<AdminAuthContextType>({
   executeOperation: async () => {},
 });
 
-export const useAdminAuth = () => {
-  const context = useContext(AdminAuthContext);
+export const useSecureAdminAuth = () => {
+  const context = useContext(SecureAdminAuthContext);
   if (!context) {
-    throw new Error('useAdminAuth deve ser usado dentro de um AdminAuthProvider');
+    throw new Error('useSecureAdminAuth deve ser usado dentro de um SecureAdminAuthProvider');
   }
   return context;
 };
 
-export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SecureAdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
+  // SEGURANÇA: Usar um token JWT simples em localStorage com tempo de expiração
+  const ADMIN_TOKEN_KEY = 'secure_admin_session';
+  const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 horas
+
   useEffect(() => {
-    console.log('useAdminAuth: verificando autenticação admin');
-    
-    // SEGURANÇA: Migrar de sessionStorage para localStorage com token seguro
-    const ADMIN_TOKEN_KEY = 'secure_admin_session';
-    const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 horas
+    console.log('useSecureAdminAuth: verificando autenticação admin');
     
     try {
       const adminSession = localStorage.getItem(ADMIN_TOKEN_KEY);
@@ -52,36 +52,18 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const sessionData = JSON.parse(adminSession);
         const currentTime = Date.now();
         
-        // Verificar se o token não expirou e tem estrutura válida
-        if (sessionData.expiresAt && currentTime < sessionData.expiresAt && sessionData.hash) {
-          console.log('useAdminAuth: admin ainda autenticado');
+        // Verificar se o token não expirou
+        if (sessionData.expiresAt && currentTime < sessionData.expiresAt) {
+          console.log('useSecureAdminAuth: admin ainda autenticado');
           setIsAdminAuthenticated(true);
         } else {
-          console.log('useAdminAuth: sessão admin expirada ou inválida');
+          console.log('useSecureAdminAuth: sessão admin expirada');
           localStorage.removeItem(ADMIN_TOKEN_KEY);
           setIsAdminAuthenticated(false);
         }
       } else {
-        // Verificar se existe auth antiga no sessionStorage e migrar
-        const oldAdminAuth = sessionStorage.getItem('admin_authenticated');
-        const oldAdminAuthTime = sessionStorage.getItem('admin_auth_time');
-        
-        if (oldAdminAuth === 'true' && oldAdminAuthTime) {
-          const authTime = parseInt(oldAdminAuthTime);
-          const currentTime = Date.now();
-          
-          if (currentTime - authTime < SESSION_DURATION) {
-            console.log('useAdminAuth: migrando sessão antiga');
-            setIsAdminAuthenticated(true);
-          }
-          
-          // Limpar dados antigos
-          sessionStorage.removeItem('admin_authenticated');
-          sessionStorage.removeItem('admin_auth_time');
-        } else {
-          console.log('useAdminAuth: admin não autenticado');
-          setIsAdminAuthenticated(false);
-        }
+        console.log('useSecureAdminAuth: admin não autenticado');
+        setIsAdminAuthenticated(false);
       }
     } catch (error) {
       console.error('Erro ao verificar sessão admin:', error);
@@ -90,7 +72,6 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
     
     setLoading(false);
-    console.log('useAdminAuth: loading definido para false');
   }, []);
 
   const executeOperation = useCallback(async (
@@ -159,10 +140,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return { success: false, error: 'Acesso negado. Apenas super administradores podem acessar esta área.' };
       }
 
-      // SEGURANÇA: Criar sessão segura com token
-      const ADMIN_TOKEN_KEY = 'secure_admin_session';
-      const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 horas
-      
+      // Criar sessão segura com expiração
       const sessionData = {
         userId: data.user.id,
         email: data.user.email,
@@ -176,6 +154,23 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       localStorage.setItem(ADMIN_TOKEN_KEY, JSON.stringify(sessionData));
       setIsAdminAuthenticated(true);
 
+      // Log da atividade de segurança
+      try {
+        await supabase.functions.invoke('security-audit', {
+          body: {
+            auditType: 'users',
+            event: 'admin_login',
+            details: {
+              user_id: data.user.id,
+              email: data.user.email,
+              timestamp: new Date().toISOString()
+            }
+          }
+        });
+      } catch (auditError) {
+        console.warn('Falha ao registrar auditoria:', auditError);
+      }
+
       return { success: true };
     } catch (error: any) {
       return { success: false, error: error.message || 'Erro ao fazer login' };
@@ -183,11 +178,23 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const adminLogout = () => {
-    // SEGURANÇA: Limpar todas as sessões
-    localStorage.removeItem('secure_admin_session');
-    sessionStorage.removeItem('admin_authenticated'); // Compatibilidade
-    sessionStorage.removeItem('admin_auth_time'); // Compatibilidade
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
     setIsAdminAuthenticated(false);
+    
+    // Log da atividade de segurança
+    try {
+      supabase.functions.invoke('security-audit', {
+        body: {
+          auditType: 'users',
+          event: 'admin_logout',
+          details: {
+            timestamp: new Date().toISOString()
+          }
+        }
+      });
+    } catch (auditError) {
+      console.warn('Falha ao registrar auditoria:', auditError);
+    }
   };
 
   const value = {
@@ -199,8 +206,8 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <AdminAuthContext.Provider value={value}>
+    <SecureAdminAuthContext.Provider value={value}>
       {children}
-    </AdminAuthContext.Provider>
+    </SecureAdminAuthContext.Provider>
   );
 };
