@@ -64,16 +64,16 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				amplie: {
-					sidebar: '#1a1d29',
-					'sidebar-hover': '#252a3a',
-					'sidebar-active': '#344ccf',
-					primary: '#344ccf',
-					'primary-light': '#4c63d2',
-					secondary: '#6c7293',
-					success: '#00d25b',
-					warning: '#ffab00',
-					danger: '#ea5455',
-					'card-shadow': 'rgba(0, 0, 0, 0.1)',
+					sidebar: 'hsl(var(--sidebar-background))',
+					'sidebar-hover': 'hsl(var(--sidebar-accent))',
+					'sidebar-active': 'hsl(var(--sidebar-primary))',
+					primary: 'hsl(var(--amplie-primary))',
+					'primary-light': 'hsl(var(--amplie-primary-light))',
+					secondary: 'hsl(var(--amplie-secondary))',
+					success: 'hsl(var(--amplie-success))',
+					warning: 'hsl(var(--amplie-warning))',
+					danger: 'hsl(var(--amplie-danger))',
+					'card-shadow': 'hsl(var(--primary) / 0.1)',
 				}
 			},
 			borderRadius: {
