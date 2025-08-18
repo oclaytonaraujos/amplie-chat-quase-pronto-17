@@ -7,6 +7,9 @@ interface EvolutionApiConfig {
   server_url: string;
   api_key: string;
   webhook_base_url?: string;
+  n8n_webhook_url?: string;
+  n8n_signing_secret?: string;
+  n8n_mode_enabled?: boolean;
   ativo: boolean;
 }
 
@@ -55,6 +58,9 @@ export function EvolutionApiProvider({ children }: EvolutionApiProviderProps) {
           server_url: configData.server_url,
           api_key: configData.api_key,
           webhook_base_url: configData.webhook_base_url,
+          n8n_webhook_url: (configData as any).n8n_webhook_url,
+          n8n_signing_secret: (configData as any).n8n_signing_secret,
+          n8n_mode_enabled: (configData as any).n8n_mode_enabled || false,
           ativo: configData.ativo
         });
       } else {
@@ -100,6 +106,9 @@ export function EvolutionApiProvider({ children }: EvolutionApiProviderProps) {
           server_url: newConfig.server_url,
           api_key: newConfig.api_key,
           webhook_base_url: newConfig.webhook_base_url,
+          n8n_webhook_url: newConfig.n8n_webhook_url,
+          n8n_signing_secret: newConfig.n8n_signing_secret,
+          n8n_mode_enabled: newConfig.n8n_mode_enabled || false,
           ativo: true
         })
         .select()
@@ -118,6 +127,9 @@ export function EvolutionApiProvider({ children }: EvolutionApiProviderProps) {
         server_url: data.server_url,
         api_key: data.api_key,
         webhook_base_url: data.webhook_base_url,
+        n8n_webhook_url: (data as any).n8n_webhook_url,
+        n8n_signing_secret: (data as any).n8n_signing_secret,
+        n8n_mode_enabled: (data as any).n8n_mode_enabled || false,
         ativo: true
       });
 

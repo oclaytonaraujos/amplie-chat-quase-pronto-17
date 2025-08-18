@@ -11,12 +11,18 @@ interface EvolutionConfig {
   id?: string;
   server_url: string;
   api_key: string;
+  n8n_webhook_url?: string;
+  n8n_signing_secret?: string;
+  n8n_mode_enabled?: boolean;
   ativo: boolean;
 }
 export default function IntegracaoSimples() {
   const [configGlobal, setConfigGlobal] = useState<EvolutionConfig>({
     server_url: '',
     api_key: '',
+    n8n_webhook_url: '',
+    n8n_signing_secret: '',
+    n8n_mode_enabled: false,
     ativo: false
   });
   const [loading, setLoading] = useState(true);
@@ -39,6 +45,9 @@ export default function IntegracaoSimples() {
         id: globalConfig.id,
         server_url: globalConfig.server_url,
         api_key: globalConfig.api_key,
+        n8n_webhook_url: globalConfig.n8n_webhook_url || '',
+        n8n_signing_secret: globalConfig.n8n_signing_secret || '',
+        n8n_mode_enabled: globalConfig.n8n_mode_enabled || false,
         ativo: globalConfig.ativo
       });
       setConfigSalva(true);
@@ -62,7 +71,10 @@ export default function IntegracaoSimples() {
     const sucesso = await updateConfig({
       server_url: configGlobal.server_url,
       api_key: configGlobal.api_key,
-      webhook_base_url: 'https://obtpghqvrygzcukdaiej.supabase.co/functions/v1/whatsapp-webhook-evolution'
+      webhook_base_url: 'https://obtpghqvrygzcukdaiej.supabase.co/functions/v1/whatsapp-webhook-evolution',
+      n8n_webhook_url: configGlobal.n8n_webhook_url,
+      n8n_signing_secret: configGlobal.n8n_signing_secret,
+      n8n_mode_enabled: configGlobal.n8n_mode_enabled
     });
     if (sucesso) {
       setConfigSalva(true);
@@ -85,6 +97,9 @@ export default function IntegracaoSimples() {
         id: globalConfig.id,
         server_url: globalConfig.server_url,
         api_key: globalConfig.api_key,
+        n8n_webhook_url: globalConfig.n8n_webhook_url || '',
+        n8n_signing_secret: globalConfig.n8n_signing_secret || '',
+        n8n_mode_enabled: globalConfig.n8n_mode_enabled || false,
         ativo: globalConfig.ativo
       });
     }
@@ -132,6 +147,31 @@ export default function IntegracaoSimples() {
                   </div>
                 </div>
               </div>
+              
+              {/* Informações N8N */}
+              {(configGlobal.n8n_webhook_url || configGlobal.n8n_mode_enabled) && (
+                <div className="border-t pt-4">
+                  <h4 className="text-lg font-medium mb-3 flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    Integração N8N
+                    {configGlobal.n8n_mode_enabled && <Badge className="bg-blue-100 text-blue-800">Ativo</Badge>}
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">URL do Webhook</Label>
+                      <div className="p-3 bg-muted/50 rounded-md border">
+                        <p className="text-sm font-mono">{configGlobal.n8n_webhook_url || 'Não configurado'}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Status do Modo N8N</Label>
+                      <div className="p-3 bg-muted/50 rounded-md border">
+                        <p className="text-sm">{configGlobal.n8n_mode_enabled ? 'Habilitado' : 'Desabilitado'}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button variant="outline" onClick={habilitarEdicao}>
                   <Edit className="w-4 h-4 mr-2" />
@@ -155,6 +195,55 @@ export default function IntegracaoSimples() {
                 ...prev,
                 api_key: e.target.value
               }))} />
+                </div>
+              </div>
+              
+              {/* Configurações N8N */}
+              <div className="border-t pt-4">
+                <h4 className="text-lg font-medium mb-3 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Integração N8N (Opcional)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="n8n_webhook_url">URL do Webhook N8N</Label>
+                    <Input 
+                      id="n8n_webhook_url" 
+                      placeholder="https://seu-n8n.com/webhook/..." 
+                      value={configGlobal.n8n_webhook_url || ''} 
+                      onChange={e => setConfigGlobal(prev => ({
+                        ...prev,
+                        n8n_webhook_url: e.target.value
+                      }))} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="n8n_signing_secret">Chave de Assinatura</Label>
+                    <Input 
+                      id="n8n_signing_secret" 
+                      type="password" 
+                      placeholder="Chave secreta para HMAC" 
+                      value={configGlobal.n8n_signing_secret || ''} 
+                      onChange={e => setConfigGlobal(prev => ({
+                        ...prev,
+                        n8n_signing_secret: e.target.value
+                      }))} 
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <label className="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      checked={configGlobal.n8n_mode_enabled || false}
+                      onChange={e => setConfigGlobal(prev => ({
+                        ...prev,
+                        n8n_mode_enabled: e.target.checked
+                      }))}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Habilitar modo N8N (processamento via eventos)</span>
+                  </label>
                 </div>
               </div>
               <div className="flex gap-2">
