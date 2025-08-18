@@ -82,11 +82,11 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-  /* Amplie brand colors - usando cores do sistema */
-  --amplie-primary: 222.2 47.4% 11.2%;
-  --amplie-primary-light: 222.2 47.4% 21.2%;
-  --amplie-primary-dark: 222.2 47.4% 8%;
-  --amplie-secondary: 215.4 16.3% 46.9%;
+  /* Amplie brand colors - usando cores HSL consistentes */
+  --amplie-primary: 222 84% 5%;
+  --amplie-primary-light: 222 84% 15%;
+  --amplie-primary-dark: 222 84% 3%;
+  --amplie-secondary: 215 16% 47%;
   --amplie-accent: 142 76% 46%;
   --amplie-warning: 38 92% 50%;
   --amplie-danger: 0 84% 60%;
