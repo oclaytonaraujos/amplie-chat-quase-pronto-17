@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 // DateRangePicker será implementado futuramente
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealData } from '@/hooks/useRealData';
 
 interface MetricData {
   name: string;
@@ -54,15 +55,56 @@ export function AdvancedAnalytics() {
     }
   };
 
+  const { loadAnalytics: loadRealAnalytics } = useRealData();
+
   const loadMetrics = async () => {
-    // Simular métricas principais
-    const mockMetrics: MetricData[] = [
-      { name: 'Total de Conversas', value: 1247, change: 12.5, trend: 'up' },
-      { name: 'Tempo Médio de Resposta', value: 2.3, change: -8.2, trend: 'down' },
-      { name: 'Taxa de Resolução', value: 89.2, change: 5.1, trend: 'up' },
-      { name: 'Satisfação do Cliente', value: 4.6, change: 3.2, trend: 'up' },
-    ];
-    setMetrics(mockMetrics);
+    try {
+      const analyticsData = await loadRealAnalytics();
+      
+      if (analyticsData) {
+        const resolutionRate = analyticsData.total_conversations > 0 
+          ? (analyticsData.resolved_conversations / analyticsData.total_conversations * 100) 
+          : 0;
+
+        const metrics: MetricData[] = [
+          { 
+            name: 'Total de Conversas', 
+            value: analyticsData.total_conversations, 
+            change: 12.5, // Calcular baseado em período anterior
+            trend: 'up' 
+          },
+          { 
+            name: 'Tempo Médio de Resposta', 
+            value: analyticsData.avg_response_time_minutes, 
+            change: -8.2, 
+            trend: 'down' 
+          },
+          { 
+            name: 'Taxa de Resolução', 
+            value: resolutionRate, 
+            change: 5.1, 
+            trend: 'up' 
+          },
+          { 
+            name: 'Satisfação do Cliente', 
+            value: analyticsData.satisfaction_score, 
+            change: 3.2, 
+            trend: 'up' 
+          },
+        ];
+        setMetrics(metrics);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar métricas:', error);
+      // Fallback para dados padrão se houver erro
+      const defaultMetrics: MetricData[] = [
+        { name: 'Total de Conversas', value: 0, change: 0, trend: 'stable' },
+        { name: 'Tempo Médio de Resposta', value: 0, change: 0, trend: 'stable' },
+        { name: 'Taxa de Resolução', value: 0, change: 0, trend: 'stable' },
+        { name: 'Satisfação do Cliente', value: 0, change: 0, trend: 'stable' },
+      ];
+      setMetrics(defaultMetrics);
+    }
   };
 
   const loadChartData = async () => {

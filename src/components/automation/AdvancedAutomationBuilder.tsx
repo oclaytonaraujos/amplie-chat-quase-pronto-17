@@ -63,38 +63,50 @@ export function AdvancedAutomationBuilder() {
   const [loading, setLoading] = useState(true);
   const [selectedAutomation, setSelectedAutomation] = useState<AutomationRule | null>(null);
   
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { toast } = useToast();
 
   const loadAutomations = useCallback(async () => {
-    if (!user) return;
+    if (!user || !profile) return;
     
     setLoading(true);
     try {
-      // Simulate automation data for now
-      const mockAutomations: AutomationRule[] = [
-        {
-          id: '1',
-          name: 'Auto Resposta de Boas Vindas',
-          description: 'Envia mensagem automática quando usuário se conecta',
-          trigger_type: 'user_joined',
-          conditions: {},
-          actions: {},
-          enabled: true,
-          priority: 5,
-          cooldown_minutes: 0,
-          max_activations_per_day: 100,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
-      setAutomations(mockAutomations);
+      // Carregar automações reais do Supabase
+      const { data, error } = await supabase
+        .from('automation_triggers')
+        .select('*')
+        .eq('empresa_id', profile.empresa_id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const automations: AutomationRule[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description || '',
+        trigger_type: item.trigger_type,
+        conditions: item.conditions || {},
+        actions: item.actions || {},
+        enabled: item.enabled,
+        priority: item.priority,
+        cooldown_minutes: item.cooldown_minutes,
+        max_activations_per_day: item.max_activations_per_day,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+
+      setAutomations(automations);
     } catch (error) {
-      console.error('Unexpected error:', error);
+      console.error('Erro ao carregar automações:', error);
+      toast({
+        title: "Erro ao carregar automações",
+        description: "Não foi possível carregar as automações.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
-  }, [user, toast]);
+  }, [user, profile, toast]);
 
   const loadExecutionLogs = useCallback(async () => {
     if (!user) return;

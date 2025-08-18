@@ -1,37 +1,23 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Settings, Webhook, Activity } from 'lucide-react';
 import { WebhooksCentralizados } from './WebhooksCentralizados';
 import IntegracaoSimples from './IntegracaoSimples';
 import { InstanciasWhatsAppAdmin } from './InstanciasWhatsAppAdmin';
-
-// Mock data - replace with actual data from your API
-const mockInstancias = [
-  {
-    id: '1',
-    instance_name: 'whatsapp-principal',
-    numero: '+55 11 99999-9999',
-    status: 'open' as const,
-    ativo: true,
-    empresa_nome: 'Empresa Principal',
-    webhook_status: 'ativo' as const,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
-  },
-  {
-    id: '2', 
-    instance_name: 'whatsapp-suporte',
-    numero: '+55 11 88888-8888',
-    status: 'close' as const,
-    ativo: true,
-    empresa_nome: 'Empresa Suporte',
-    webhook_status: 'inativo' as const,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z'
-  }
-];
+import { useRealData } from '@/hooks/useRealData';
 
 export default function IntegracoesCentralizadas() {
+  const [instancias, setInstancias] = useState<any[]>([]);
+  const { loadEvolutionInstances, loading } = useRealData();
+
+  useEffect(() => {
+    const loadData = async () => {
+      const data = await loadEvolutionInstances();
+      setInstancias(data);
+    };
+    loadData();
+  }, [loadEvolutionInstances]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -66,7 +52,13 @@ export default function IntegracoesCentralizadas() {
       </TabsContent>
 
       <TabsContent value="instancias">
-        <InstanciasWhatsAppAdmin instancias={mockInstancias} />
+        {loading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : (
+          <InstanciasWhatsAppAdmin instancias={instancias} />
+        )}
       </TabsContent>
 
       <TabsContent value="webhooks">

@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useRealData } from '@/hooks/useRealData';
 
 interface AnalyticsData {
   total_conversations: number;
@@ -47,23 +48,21 @@ export function ComprehensiveAnalytics() {
   const { user } = useAuth();
   const { toast } = useToast();
 
+  const { loadAnalytics: loadRealAnalytics } = useRealData();
+
   const loadAnalytics = async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      // Simulate analytics data for now
-      const mockAnalytics = {
-        total_conversations: 150,
-        resolved_conversations: 120,
-        avg_response_time_minutes: 3.5,
-        total_messages: 1250,
-        active_agents: 8,
-        satisfaction_score: 4.2
-      };
-      setAnalytics(mockAnalytics);
+      // Carregar dados reais de analytics
+      const analyticsData = await loadRealAnalytics();
+      
+      if (analyticsData) {
+        setAnalytics(analyticsData);
+      }
 
-      // Simulate performance metrics
+      // Simular métricas de performance por enquanto - será implementado futuramente
       const mockMetrics: PerformanceMetric[] = [
         {
           id: '1',
