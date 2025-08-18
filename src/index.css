@@ -82,12 +82,12 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-  /* Amplie brand colors - usando cores HSL consistentes */
-  --amplie-primary: 222 84% 5%;
-  --amplie-primary-light: 222 84% 15%;
-  --amplie-primary-dark: 222 84% 3%;
-  --amplie-secondary: 215 16% 47%;
-  --amplie-accent: 142 76% 46%;
+  /* Amplie brand colors - cores HSL modernas e acessíveis */
+  --amplie-primary: 217 91% 60%;
+  --amplie-primary-light: 217 91% 70%;
+  --amplie-primary-dark: 217 91% 45%;
+  --amplie-secondary: 215 25% 27%;
+  --amplie-accent: 142 71% 45%;
   --amplie-warning: 38 92% 50%;
   --amplie-danger: 0 84% 60%;
   --amplie-success: 142 76% 36%;
@@ -147,25 +147,29 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Color scheme variations */
+  /* Color scheme variations - paleta harmonizada */
   [data-color-scheme="blue"] {
     --amplie-primary: 217 91% 60%;
     --amplie-primary-light: 217 91% 70%;
+    --amplie-primary-dark: 217 91% 45%;
   }
 
   [data-color-scheme="green"] {
-    --amplie-primary: 142 76% 36%;
-    --amplie-primary-light: 142 76% 46%;
+    --amplie-primary: 142 71% 45%;
+    --amplie-primary-light: 142 71% 55%;
+    --amplie-primary-dark: 142 71% 35%;
   }
 
   [data-color-scheme="purple"] {
     --amplie-primary: 262 83% 58%;
     --amplie-primary-light: 262 83% 68%;
+    --amplie-primary-dark: 262 83% 48%;
   }
 
   [data-color-scheme="orange"] {
     --amplie-primary: 25 95% 53%;
     --amplie-primary-light: 25 95% 63%;
+    --amplie-primary-dark: 25 95% 43%;
   }
 
   /* Font size variations */
