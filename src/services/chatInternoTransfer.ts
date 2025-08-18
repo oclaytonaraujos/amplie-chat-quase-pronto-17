@@ -25,7 +25,7 @@ Motivo: ${transferData.motivo}
 Data: ${transferData.timestamp.toLocaleString('pt-BR')}`;
 
     return {
-      id: Date.now(),
+      id: `${Date.now()}`,
       texto: messageText,
       autor: autorMensagem,
       tempo: transferData.timestamp.toLocaleTimeString('pt-BR', { 
@@ -62,7 +62,7 @@ Data: ${transferData.timestamp.toLocaleString('pt-BR')}`;
     if (!usuarioDestino) return null;
 
     return {
-      id: Date.now(),
+      id: `${Date.now()}`,
       tipo: 'individual' as const,
       nome: usuarioDestino.nome,
       participantes: [usuarioDestino],

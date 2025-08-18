@@ -8,15 +8,17 @@ import { useTransferNotifications } from '@/hooks/useTransferNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { useChatInterno } from '@/hooks/useChatInterno';
 import { useChatInternoNotifications } from '@/hooks/useChatInternoNotifications';
-import { Usuario, Conversa, Mensagem } from '@/types/chat-interno';
+import { Usuario, Conversa, Mensagem, ConversaInterna, MensagemInterna } from '@/types/chat-interno';
 import { ChatInternoTransferService } from '@/services/chatInternoTransfer';
+import { useAuth } from '@/hooks/useAuth';
 
 
 export default function ChatInterno() {
-  const [conversaSelecionada, setConversaSelecionada] = useState<any>(null);
+  const [conversaSelecionada, setConversaSelecionada] = useState<ConversaInterna | null>(null);
   const [showContacts, setShowContacts] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const { addTransferNotification } = useTransferNotifications();
   const { toast } = useToast();
   
@@ -37,48 +39,48 @@ export default function ChatInterno() {
     marcarConversaComoLida
   } = useChatInternoNotifications();
 
-  // Converter dados para compatibilidade com componentes mock
-  const convertToMockConversas = (conversasDb: any[]): Conversa[] => {
+  // Converter dados do Supabase para componentes (sem conversão de UUID para número)
+  const convertToMockConversas = (conversasDb: ConversaInterna[]): Conversa[] => {
     return conversasDb.map(conv => ({
-      id: parseInt(conv.id.substring(0, 8), 16), // Converter UUID para número
+      id: conv.id,
       tipo: 'individual' as const,
       nome: conv.participante?.nome || 'Usuário',
       participantes: [{
-        id: conv.participante?.id || '0',
+        id: conv.participante?.id || '',
         nome: conv.participante?.nome || 'Usuário',
         email: conv.participante?.email || '',
-        status: 'online',
+        status: conv.participante?.status as 'online' | 'offline' | 'ausente' || 'offline',
         cargo: conv.participante?.cargo || 'Usuário'
       }],
       mensagensNaoLidas: unreadCounts[conv.id] || 0
     }));
   };
 
-  const convertToMockMensagens = (mensagensDb: any[]): Mensagem[] => {
+  const convertToMockMensagens = (mensagensDb: MensagemInterna[]): Mensagem[] => {
     return mensagensDb.map(msg => ({
-      id: parseInt(msg.id.substring(0, 8), 16),
+      id: msg.id,
       texto: msg.conteudo,
       autor: {
-        id: parseInt((msg.remetente?.id || msg.remetente_id || '0').substring(0, 8), 16),
-        nome: msg.remetente?.nome || 'Usuário',
+        id: msg.remetente?.id || msg.remetente_id || '',
+        nome: msg.remetente?.nome || (msg.remetente_id === user?.id ? 'Você' : 'Usuário'),
         email: msg.remetente?.email || '',
-        status: 'online' as const,
+        status: (msg.remetente?.status as 'online' | 'offline' | 'ausente') || 'offline',
         cargo: msg.remetente?.cargo || 'Usuário'
       },
-      tempo: new Date(msg.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
-      tipo: msg.tipo_mensagem || 'texto'
+      tempo: new Date(msg.created_at || '').toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      tipo: msg.tipo_mensagem as 'texto' | 'imagem' | 'documento' | 'audio' || 'texto'
     }));
   };
 
-  const handleSelectConversa = (conversa: any) => {
-    // Encontrar a conversa original pelo nome (como identificador)
-    const conversaOriginal = conversasInternas.find(c => 
-      c.participante?.nome === conversa.nome
-    );
+  const handleSelectConversa = (conversa: Conversa) => {
+    console.log('Selecionando conversa:', conversa.id);
+    
+    // Encontrar a conversa original usando o ID
+    const conversaOriginal = conversasInternas.find(c => c.id === conversa.id);
     
     if (conversaOriginal) {
       setConversaSelecionada(conversaOriginal);
-      // Carregar mensagens da conversa selecionada usando o ID original
+      // Carregar mensagens da conversa selecionada
       loadMensagensInternas(conversaOriginal.id);
       // Marcar conversa como lida quando selecionada
       marcarConversaComoLida(conversaOriginal.id);
@@ -133,14 +135,20 @@ export default function ChatInterno() {
     setShowContacts(true);
   };
 
-  const handleSelectContact = async (usuario: any) => {
+  const handleSelectContact = async (usuario: Usuario) => {
     try {
-      // Criar nova conversa interna com o usuário selecionado (usar ID original string do banco)
-      const usuarioOriginal = usuarios.find(u => parseInt(u.id.substring(0, 8), 16) === usuario.id);
-      const novaConversa = await criarConversaInterna(usuarioOriginal?.id || usuario.id);
+      console.log('Criando conversa com usuário:', usuario.id);
+      
+      const novaConversa = await criarConversaInterna(usuario.id);
       if (novaConversa) {
-        setConversaSelecionada(novaConversa);
-        loadMensagensInternas(novaConversa.id);
+        // Encontrar a conversa completa na lista após recarregar
+        await new Promise(resolve => setTimeout(resolve, 100)); // Aguardar atualização
+        const conversaCompleta = conversasInternas.find(c => c.id === novaConversa.id);
+        if (conversaCompleta) {
+          setConversaSelecionada(conversaCompleta);
+          loadMensagensInternas(conversaCompleta.id);
+          console.log('Nova conversa criada:', conversaCompleta.id);
+        }
       }
     } catch (error) {
       console.error('Erro ao criar conversa:', error);
@@ -176,7 +184,11 @@ export default function ChatInterno() {
       `}>
         {showContacts ? (
           <ContactsList
-            usuarios={usuarios.map(u => ({ ...u, id: parseInt(u.id.substring(0, 8), 16), status: 'online' as const, cargo: u.cargo || 'Usuário' }))}
+            usuarios={usuarios.map(u => ({ 
+              ...u, 
+              status: (u.status as 'online' | 'offline' | 'ausente') || 'offline',
+              cargo: u.cargo || 'Usuário'
+            }))}
             onSelectContact={handleSelectContact}
             onBack={() => setShowContacts(false)}
           />

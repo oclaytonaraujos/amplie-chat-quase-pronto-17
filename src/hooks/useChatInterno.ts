@@ -18,17 +18,36 @@ export function useChatInterno() {
     if (!user) return;
     
     try {
+      console.log('Carregando usuários da empresa para user:', user.id);
+      
       // Primeiro, obter a empresa_id do usuário atual
-      const { data: currentProfile } = await supabase
+      const { data: currentProfile, error: profileError } = await supabase
         .from('profiles')
         .select('empresa_id')
         .eq('id', user.id)
         .single();
 
-      if (!currentProfile?.empresa_id) {
-        console.error('Usuário não está associado a uma empresa');
+      if (profileError) {
+        console.error('Erro ao buscar perfil do usuário:', profileError);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar perfil do usuário",
+          variant: "destructive",
+        });
         return;
       }
+
+      if (!currentProfile?.empresa_id) {
+        console.error('Usuário não está associado a uma empresa');
+        toast({
+          title: "Erro",
+          description: "Usuário não está associado a uma empresa",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('Buscando usuários da empresa:', currentProfile.empresa_id);
 
       const { data, error } = await supabase
         .from('profiles')
@@ -38,12 +57,23 @@ export function useChatInterno() {
 
       if (error) {
         console.error('Erro ao carregar usuários:', error);
+        toast({
+          title: "Erro ao carregar usuários",
+          description: error.message,
+          variant: "destructive",
+        });
         return;
       }
 
+      console.log('Usuários carregados:', data?.length || 0);
       setUsuarios(data || []);
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
+      toast({
+        title: "Erro inesperado",
+        description: "Erro ao carregar usuários da empresa",
+        variant: "destructive",
+      });
     }
   };
 
@@ -53,6 +83,7 @@ export function useChatInterno() {
     
     try {
       setLoading(true);
+      console.log('Carregando conversas internas para user:', user.id);
       
       const { data, error } = await supabase
         .from('conversas_internas')
@@ -66,8 +97,15 @@ export function useChatInterno() {
 
       if (error) {
         console.error('Erro ao carregar conversas internas:', error);
+        toast({
+          title: "Erro ao carregar conversas",
+          description: error.message,
+          variant: "destructive",
+        });
         return;
       }
+
+      console.log('Conversas encontradas:', data?.length || 0);
 
       // Mapear conversas com informações do outro participante
       const conversasComParticipantes = data?.map(conversa => {
@@ -78,13 +116,19 @@ export function useChatInterno() {
         return {
           ...conversa,
           participante: outroParticipante,
-          mensagensNaoLidas: 0 // TODO: implementar contagem real
+          mensagensNaoLidas: 0 // Será atualizado pelo hook de notificações
         } as ConversaInterna;
       }) || [];
 
       setConversasInternas(conversasComParticipantes);
+      console.log('Conversas processadas:', conversasComParticipantes.length);
     } catch (error) {
       console.error('Erro ao carregar conversas internas:', error);
+      toast({
+        title: "Erro inesperado",
+        description: "Erro ao carregar conversas internas",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
@@ -95,6 +139,8 @@ export function useChatInterno() {
     if (!user) return;
     
     try {
+      console.log('Carregando mensagens para conversa:', conversaId);
+      
       const { data, error } = await supabase
         .from('mensagens_internas')
         .select(`
@@ -106,12 +152,23 @@ export function useChatInterno() {
 
       if (error) {
         console.error('Erro ao carregar mensagens internas:', error);
+        toast({
+          title: "Erro ao carregar mensagens",
+          description: error.message,
+          variant: "destructive",
+        });
         return;
       }
 
+      console.log('Mensagens carregadas:', data?.length || 0);
       setMensagensInternas(prev => ({ ...prev, [conversaId]: data as MensagemInterna[] || [] }));
     } catch (error) {
       console.error('Erro ao carregar mensagens internas:', error);
+      toast({
+        title: "Erro inesperado",
+        description: "Erro ao carregar mensagens",
+        variant: "destructive",
+      });
     }
   };
 

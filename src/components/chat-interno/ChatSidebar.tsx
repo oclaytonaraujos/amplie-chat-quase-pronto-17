@@ -8,7 +8,7 @@ import { ChatSearch } from './ChatSearch';
 import { Usuario, Conversa } from '@/types/chat-interno';
 interface ChatSidebarProps {
   conversas: Conversa[];
-  conversaSelecionada: Conversa | null;
+  conversaSelecionada: any | null;
   onSelectConversa: (conversa: Conversa) => void;
   onNovaConversa: () => void;
   isMobile?: boolean;

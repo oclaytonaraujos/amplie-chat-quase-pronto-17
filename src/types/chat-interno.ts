@@ -8,9 +8,9 @@ export interface Usuario {
   setor?: string;
 }
 
-// Interfaces de compatibilidade com os componentes existentes
+// Interfaces simplificadas para componentes - usando UUIDs diretamente
 export interface Conversa {
-  id: number;
+  id: string;
   tipo: 'individual' | 'grupo';
   nome: string;
   participantes: Usuario[];
@@ -24,10 +24,10 @@ export interface Conversa {
 }
 
 export interface Mensagem {
-  id: number;
+  id: string;
   texto: string;
   autor: {
-    id: number;
+    id: string;
     nome: string;
     email: string;
     status: 'online' | 'offline' | 'ausente';

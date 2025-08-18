@@ -23,50 +23,14 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-interface Usuario {
-  id: number;
-  nome: string;
-  email: string;
-  avatar?: string;
-  status: 'online' | 'offline' | 'ausente';
-  cargo: string;
-}
-
-interface Conversa {
-  id: number;
-  tipo: 'individual' | 'grupo';
-  nome: string;
-  participantes: Usuario[];
-  ultimaMensagem?: {
-    texto: string;
-    autor: string;
-    tempo: string;
-  };
-  mensagensNaoLidas: number;
-  avatar?: string;
-}
-
-interface Mensagem {
-  id: number;
-  texto: string;
-  autor: Usuario;
-  tempo: string;
-  tipo: 'texto' | 'imagem' | 'documento' | 'audio';
-  anexo?: {
-    nome: string;
-    url: string;
-    tamanho?: string;
-  };
-}
-
 interface ChatAreaProps {
-  conversa: Conversa | null;
-  mensagens: Mensagem[];
+  conversa: any | null;
+  mensagens: any[];
   onSendMessage: (texto: string) => void;
   onOpenSidebar?: () => void;
   onCloseConversa?: () => void;
-  onDeleteConversa?: (conversaId: number) => void;
-  onStartCall?: (conversaId: number) => void;
+  onDeleteConversa?: (conversaId: string) => void;
+  onStartCall?: (conversaId: string) => void;
   showMenuButton?: boolean;
 }
 

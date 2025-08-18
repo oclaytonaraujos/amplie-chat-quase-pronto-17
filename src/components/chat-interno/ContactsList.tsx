@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-interface Usuario {
-  id: number;
+interface UsuarioLocal {
+  id: string;
   nome: string;
   email: string;
   avatar?: string;
@@ -16,8 +16,8 @@ interface Usuario {
 }
 
 interface ContactsListProps {
-  usuarios: Usuario[];
-  onSelectContact: (usuario: Usuario) => void;
+  usuarios: UsuarioLocal[];
+  onSelectContact: (usuario: UsuarioLocal) => void;
   onBack: () => void;
 }
 
@@ -28,7 +28,7 @@ export function ContactsList({ usuarios, onSelectContact, onBack }: ContactsList
   const usuariosFiltrados = usuarios.filter(usuario =>
     usuario.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     usuario.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    usuario.cargo.toLowerCase().includes(searchTerm.toLowerCase())
+    (usuario.cargo || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const getStatusColor = (status: string) => {
