@@ -12,11 +12,13 @@ import { setupGlobalErrorHandling } from "@/utils/production-logger";
 import { ServiceWorkerProvider } from "@/hooks/useServiceWorker";
 import { WhatsAppEvolutionProvider } from "@/contexts/WhatsAppEvolutionContext";
 import { WhatsAppConnectionProvider } from "@/contexts/WhatsAppConnectionContext";
+import { PresenceProvider } from '@/contexts/PresenceContext';
+import { PushNotificationProvider } from '@/components/notifications/PushNotifications';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { ConnectionNotificationProvider } from '@/contexts/ConnectionNotificationContext';
 import { useNavigationTracking } from "@/hooks/useNavigationTracking";
 
 // Lazy load componentes críticos - Layout NÃO lazy para manter navegação fluida
-// AuthProvider NÃO deve ser lazy para evitar problemas de hidratação
-import { AuthProvider } from "@/hooks/useAuth";
 // AdminAuthProvider NÃO deve ser lazy para evitar problemas na rota /admin
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 const ProtectedRoute = lazy(() => import("@/components/ProtectedRoute").then(m => ({ default: m.ProtectedRoute })));
@@ -344,22 +346,28 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <ServiceWorkerProvider>
-            <WhatsAppEvolutionProvider>
-              <WhatsAppConnectionProvider>
-                <Suspense fallback={<FastFallback />}>
-                  <AuthProvider>
-                    <AdminAuthProvider>
-                      <TooltipProvider>
-                        <Toaster />
-                        <BrowserRouter>
-                          <AppRoutes />
-                        </BrowserRouter>
-                      </TooltipProvider>
-                    </AdminAuthProvider>
-                  </AuthProvider>
-                </Suspense>
-              </WhatsAppConnectionProvider>
-            </WhatsAppEvolutionProvider>
+            <AuthProvider>
+              <ConnectionNotificationProvider>
+                <PushNotificationProvider>
+                  <PresenceProvider>
+                    <WhatsAppEvolutionProvider>
+                      <WhatsAppConnectionProvider>
+                        <AdminAuthProvider>
+                          <Suspense fallback={<FastFallback />}>
+                            <TooltipProvider>
+                              <Toaster />
+                              <BrowserRouter>
+                                <AppRoutes />
+                              </BrowserRouter>
+                            </TooltipProvider>
+                          </Suspense>
+                        </AdminAuthProvider>
+                      </WhatsAppConnectionProvider>
+                    </WhatsAppEvolutionProvider>
+                  </PresenceProvider>
+                </PushNotificationProvider>
+              </ConnectionNotificationProvider>
+            </AuthProvider>
           </ServiceWorkerProvider>
         </ThemeProvider>
       </QueryClientProvider>
