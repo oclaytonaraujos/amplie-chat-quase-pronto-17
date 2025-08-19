@@ -52,8 +52,6 @@ const PreferenciasNotificacao = lazy(() => import("@/pages/configuracoes/Prefere
 const Aparencia = lazy(() => import("@/pages/configuracoes/Aparencia").then(m => ({ default: m.default })));
 const Idioma = lazy(() => import("@/pages/configuracoes/Idioma").then(m => ({ default: m.default })));
 
-// Templates - carregamento sob demanda
-const AdvancedTemplateManager = lazy(() => import("@/components/templates/AdvancedTemplateManager").then(m => ({ default: m.AdvancedTemplateManager })));
 
 const NotFound = lazy(() => import("@/pages/NotFound").then(m => ({ default: m.default })));
 
@@ -316,16 +314,6 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
-      {/* Templates */}
-      <Route path="/templates" element={
-        <ProtectedRoute>
-          <Layout title="Templates" description="Gerenciador de templates">
-            <Suspense fallback={<PageContentFallback />}>
-              <AdvancedTemplateManager />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
       
       <Route path="*" element={
         <Suspense fallback={<FastFallback />}>

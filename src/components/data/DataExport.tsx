@@ -310,26 +310,8 @@ export function useDataExport() {
     };
   };
 
-  const prepareTemplatesData = (templates: any[]) => {
-    return {
-      title: 'Templates de Mensagem',
-      data: templates,
-      columns: [
-        { key: 'name', label: 'Nome' },
-        { key: 'category', label: 'Categoria' },
-        { key: 'usage_count', label: 'Uso' },
-        { key: 'created_at', label: 'Criado em' }
-      ],
-      metadata: {
-        generatedAt: new Date(),
-        generatedBy: 'Sistema'
-      }
-    };
-  };
-
   return {
     prepareAnalyticsData,
-    prepareContactsData,
-    prepareTemplatesData
+    prepareContactsData
   };
 }

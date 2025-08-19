@@ -19,7 +19,7 @@ import {
   Activity
 } from 'lucide-react';
 import { PushNotificationProvider } from '@/components/notifications/PushNotifications';
-import { AdvancedMessageTemplates } from '@/components/templates/AdvancedMessageTemplates';
+
 import { ServiceWorkerControls, OfflineIndicator } from '@/hooks/useServiceWorker';
 import { PerformanceMonitor } from '@/components/ui/performance-monitor';
 import { AdvancedReports } from '@/components/reports/AdvancedReports';
@@ -343,14 +343,16 @@ export default function MelhoriasDashboard() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Templates Avançados de Mensagem
+                  Sistema de Templates (Removido)
                 </CardTitle>
                 <CardDescription>
-                  Sistema completo de templates com variáveis dinâmicas
+                  O módulo de templates foi removido conforme solicitado
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <AdvancedMessageTemplates />
+                <div className="text-center p-4 text-muted-foreground">
+                  <p>Módulo de templates removido do sistema</p>
+                </div>
               </CardContent>
             </Card>
 

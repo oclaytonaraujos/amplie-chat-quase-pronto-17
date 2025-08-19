@@ -59,12 +59,6 @@ const menuItems = [
     href: '/painel',
     color: 'text-red-400'
   },
-  {
-    title: 'Templates',
-    icon: FileText,
-    href: '/templates',
-    color: 'text-pink-400'
-  }
 ];
 
 interface SidebarMenuProps {

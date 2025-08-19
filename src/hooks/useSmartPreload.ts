@@ -12,7 +12,6 @@ const routeImports: Record<string, () => Promise<any>> = {
   '/usuarios': () => import('@/pages/Usuarios'),
   '/setores': () => import('@/pages/Setores'),
   '/gerenciar-equipe': () => import('@/pages/GerenciarEquipe'),
-  '/templates': () => import('@/components/templates/AdvancedTemplateManager'),
   '/meu-perfil': () => import('@/pages/MeuPerfil')
 };
 
