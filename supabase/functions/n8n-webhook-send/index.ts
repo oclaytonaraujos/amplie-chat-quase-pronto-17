@@ -37,11 +37,11 @@ serve(async (req) => {
 
     // Buscar configuração n8n ativa
     const { data: config, error: configError } = await supabase
-      .from('n8n_configurations')
+      .from('n8n_webhook_config')
       .select('*')
       .eq('empresa_id', empresa_id)
-      .eq('status', 'active')
-      .single();
+      .eq('ativo', true)
+      .maybeSingle();
 
     if (configError) {
       console.error('Configuração n8n não encontrada:', configError);
@@ -90,27 +90,31 @@ serve(async (req) => {
 
     const duration = Date.now() - startTime;
 
-    // Log da execução
+    // Log da execução na tabela evolution_api_logs para rastreamento
     await supabase
-      .from('n8n_execution_logs')
+      .from('evolution_api_logs')
       .insert({
-        config_id: config.id,
-        status: success ? 'success' : 'error',
-        event_type,
-        input_data: n8nPayload,
+        instance_name: `n8n_${empresa_id}`,
+        event_type: 'n8n_webhook_send',
+        success: success,
         error_message: errorMessage || null,
-        duration_ms: duration
+        event_data: {
+          webhook_url,
+          payload: n8nPayload,
+          duration_ms: duration
+        },
+        empresa_id: empresa_id
       });
 
-    // Atualizar estatísticas da configuração
-    await supabase
-      .from('n8n_configurations')
-      .update({
-        total_executions: config.total_executions + 1,
-        success_rate: ((config.success_rate * config.total_executions) + (success ? 100 : 0)) / (config.total_executions + 1),
-        last_ping: new Date().toISOString()
-      })
-      .eq('id', config.id);
+    // Atualizar última atividade na configuração
+    if (success) {
+      await supabase
+        .from('n8n_webhook_config')
+        .update({
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', config.id);
+    }
 
     if (success) {
       return new Response(
