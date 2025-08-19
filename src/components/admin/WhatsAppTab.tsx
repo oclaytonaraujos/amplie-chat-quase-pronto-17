@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, ExternalLink, Zap, Bot } from 'lucide-react';
-import { WhatsAppManager } from '@/components/whatsapp/WhatsAppManager';
+// WhatsAppManager removed - now using n8n only
 import { ChatbotStateManager } from '@/components/admin/ChatbotStateManager';
 import { N8nWebhookConfig } from '@/components/admin/N8nWebhookConfig';
 

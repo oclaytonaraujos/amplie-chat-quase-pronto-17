@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { MessageSquare, User, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { OptimizedAtendimentosList } from '@/components/atendimento/OptimizedAtendimentosList';
-import { ChatWhatsAppReal } from '@/components/atendimento/ChatWhatsAppReal';
+// ChatWhatsAppReal removed - now using n8n integration
 import { ClienteInfo } from '@/components/atendimento/ClienteInfo';
 import { ContactsList } from '@/components/atendimento/ContactsList';
 import { TransferDialog } from '@/components/atendimento/TransferDialog';
@@ -272,15 +272,9 @@ export default function Atendimento() {
         ) : (
           // Mostra chat com container otimizado para mobile
           <div className="h-screen overflow-hidden">
-            <ChatWhatsAppReal
-              conversaId={selectedAtendimento!.id}
-              nomeCliente={selectedAtendimento!.contatos?.nome || 'Cliente'}
-              telefoneCliente={selectedAtendimento!.contatos?.telefone || ''}
-              onReturnToList={handleReturnToList}
-              onSairConversa={handleSairConversa}
-              onTransferir={handleTransferir}
-              onFinalizar={handleFinalizar}
-            />
+          <div className="text-center py-4 text-muted-foreground">
+            <p>Chat integrado via n8n</p>
+          </div>
           </div>
         )}
       </div>
@@ -352,15 +346,9 @@ export default function Atendimento() {
               onNovoNumero={() => setShowNovaConversaDialog(true)}
             />
           ) : selectedAtendimento ? (
-            <ChatWhatsAppReal
-              conversaId={selectedAtendimento.id}
-              nomeCliente={selectedAtendimento.contatos?.nome || 'Cliente'}
-              telefoneCliente={selectedAtendimento.contatos?.telefone || ''}
-              clienteInfo={clienteInfo}
-              onSairConversa={handleSairConversa}
-              onTransferir={handleTransferir}
-              onFinalizar={handleFinalizar}
-            />
+            <div className="text-center py-4 text-muted-foreground">
+              <p>Chat integrado via n8n</p>
+            </div>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-100">
               <div className="text-center">

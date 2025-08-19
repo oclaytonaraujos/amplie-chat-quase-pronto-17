@@ -4,13 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { useEvolutionAPIComplete } from '@/hooks/useEvolutionAPIComplete';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Webhook, 
@@ -22,15 +18,10 @@ import {
   AlertCircle,
   Settings,
   Globe,
-  MessageSquare,
   Info,
   Wrench,
-  Zap,
   Activity,
-  Save,
-  History,
-  Eye,
-  Shield
+  Save
 } from 'lucide-react';
 
 interface WebhookConfig {
@@ -50,15 +41,6 @@ interface InstanceWebhookConfigProps {
   onConfigurationChange?: () => void;
 }
 
-interface WebhookTest {
-  id: string;
-  timestamp: string;
-  type: string;
-  status: 'success' | 'error';
-  response_time: number;
-  response_data?: any;
-}
-
 export function InstanceWebhookConfig({ 
   instanceName, 
   instanceId, 
@@ -66,23 +48,16 @@ export function InstanceWebhookConfig({
   onConfigurationChange 
 }: InstanceWebhookConfigProps) {
   const [webhookConfigs, setWebhookConfigs] = useState<{
-    evolution: WebhookConfig;
-    custom: WebhookConfig;
     n8n: WebhookConfig;
+    custom: WebhookConfig;
   }>({
-    evolution: {
-      url: `https://obtpghqvrygzcukdaiej.supabase.co/functions/v1/whatsapp-webhook-evolution`,
-      enabled: true,
-      status: 'inactive',
-      events: ['MESSAGES_UPSERT', 'CONNECTION_UPDATE', 'QRCODE_UPDATED']
-    },
-    custom: {
+    n8n: {
       url: '',
-      enabled: false,
+      enabled: true,
       status: 'inactive',
       events: []
     },
-    n8n: {
+    custom: {
       url: '',
       enabled: false,
       status: 'inactive',
@@ -93,47 +68,11 @@ export function InstanceWebhookConfig({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
-  const [configuring, setConfiguring] = useState(false);
-  const [setupProgress, setSetupProgress] = useState(0);
-  const [webhookTests, setWebhookTests] = useState<WebhookTest[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
 
   const { toast } = useToast();
-  const { 
-    configureCompleteWebhook, 
-    checkWebhookStatus, 
-    findWebhook,
-    setWebhook,
-    isServiceAvailable 
-  } = useEvolutionAPIComplete();
-
-  const availableEvents = [
-    'APPLICATION_STARTUP',
-    'QRCODE_UPDATED',
-    'MESSAGES_SET',
-    'MESSAGES_UPSERT', 
-    'MESSAGES_UPDATE',
-    'MESSAGES_DELETE',
-    'SEND_MESSAGE',
-    'CONTACTS_SET',
-    'CONTACTS_UPSERT',
-    'CONTACTS_UPDATE',
-    'PRESENCE_UPDATE',
-    'CHATS_SET',
-    'CHATS_UPSERT',
-    'CHATS_UPDATE',
-    'CHATS_DELETE',
-    'GROUPS_UPSERT',
-    'GROUP_UPDATE',
-    'GROUP_PARTICIPANTS_UPDATE',
-    'CONNECTION_UPDATE',
-    'CALL',
-    'NEW_JWT_TOKEN'
-  ];
 
   useEffect(() => {
     loadInstanceWebhookConfig();
-    loadWebhookTests();
   }, [instanceName]);
 
   const loadInstanceWebhookConfig = async () => {
@@ -142,42 +81,27 @@ export function InstanceWebhookConfig({
       // Carregar configuração da instância do banco
       const { data: configData, error } = await supabase
         .from('evolution_api_config')
-        .select('webhook_url, webhook_events')
+        .select('webhook_url')
         .eq('instance_name', instanceName)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error;
 
-      // Verificar status atual do webhook na Evolution API
-      if (isServiceAvailable) {
-        const webhookStatus = await checkWebhookStatus(instanceName);
-        
-        setWebhookConfigs(prev => ({
-          ...prev,
-          evolution: {
-            ...prev.evolution,
-            status: webhookStatus.configured ? 'active' : 'inactive',
-            url: webhookStatus.url || prev.evolution.url,
-            events: configData?.webhook_events || prev.evolution.events
-          }
-        }));
-      }
-
-      // Carregar webhooks personalizados salvos
-      const customWebhookUrl = localStorage.getItem(`custom-webhook-${instanceName}`);
+      // Carregar webhooks salvos
       const n8nWebhookUrl = localStorage.getItem(`n8n-webhook-${instanceName}`);
-
-      if (customWebhookUrl) {
-        setWebhookConfigs(prev => ({
-          ...prev,
-          custom: { ...prev.custom, url: customWebhookUrl, enabled: true }
-        }));
-      }
+      const customWebhookUrl = localStorage.getItem(`custom-webhook-${instanceName}`);
 
       if (n8nWebhookUrl) {
         setWebhookConfigs(prev => ({
           ...prev,
           n8n: { ...prev.n8n, url: n8nWebhookUrl, enabled: true }
+        }));
+      }
+
+      if (customWebhookUrl) {
+        setWebhookConfigs(prev => ({
+          ...prev,
+          custom: { ...prev.custom, url: customWebhookUrl, enabled: true }
         }));
       }
 
@@ -193,23 +117,6 @@ export function InstanceWebhookConfig({
     }
   };
 
-  const loadWebhookTests = async () => {
-    // Carregar histórico de testes do localStorage (em produção seria do banco)
-    const testsKey = `webhook-tests-${instanceName}`;
-    const savedTests = localStorage.getItem(testsKey);
-    if (savedTests) {
-      setWebhookTests(JSON.parse(savedTests));
-    }
-  };
-
-  const saveWebhookTest = (test: Omit<WebhookTest, 'id'>) => {
-    const newTest = { ...test, id: Date.now().toString() };
-    const testsKey = `webhook-tests-${instanceName}`;
-    const currentTests = [...webhookTests, newTest].slice(-10); // Manter apenas os últimos 10
-    setWebhookTests(currentTests);
-    localStorage.setItem(testsKey, JSON.stringify(currentTests));
-  };
-
   const updateWebhookConfig = (type: keyof typeof webhookConfigs, updates: Partial<WebhookConfig>) => {
     setWebhookConfigs(prev => ({
       ...prev,
@@ -217,22 +124,20 @@ export function InstanceWebhookConfig({
     }));
 
     // Persistir configurações locais
-    if (type === 'custom') {
-      localStorage.setItem(`custom-webhook-${instanceName}`, updates.url || '');
-    } else if (type === 'n8n') {
+    if (type === 'n8n') {
       localStorage.setItem(`n8n-webhook-${instanceName}`, updates.url || '');
+    } else if (type === 'custom') {
+      localStorage.setItem(`custom-webhook-${instanceName}`, updates.url || '');
     }
   };
 
   const saveConfiguration = async () => {
     setSaving(true);
     try {
-      // Salvar configuração no banco de dados
       const { error } = await supabase
         .from('evolution_api_config')
         .update({
-          webhook_url: webhookConfigs.evolution.url,
-          webhook_events: webhookConfigs.evolution.events,
+          webhook_url: webhookConfigs.n8n.url || webhookConfigs.custom.url,
           updated_at: new Date().toISOString()
         })
         .eq('instance_name', instanceName);
@@ -257,63 +162,6 @@ export function InstanceWebhookConfig({
     }
   };
 
-  const configureEvolutionWebhook = async () => {
-    setConfiguring(true);
-    setSetupProgress(0);
-
-    try {
-      setSetupProgress(25);
-      toast({
-        title: "Configurando webhook...",
-        description: "Configurando webhook da Evolution API",
-      });
-
-      // Configurar webhook com eventos específicos
-      const result = await setWebhook(instanceName, {
-        url: webhookConfigs.evolution.url,
-        events: webhookConfigs.evolution.events || [],
-        webhook_by_events: true
-      });
-
-      setSetupProgress(75);
-
-      if (result) {
-        updateWebhookConfig('evolution', {
-          status: 'active',
-          last_test: new Date().toISOString(),
-          test_result: true
-        });
-
-        setSetupProgress(100);
-        
-        toast({
-          title: "Webhook configurado!",
-          description: "Webhook da Evolution API configurado com sucesso",
-        });
-
-        await saveConfiguration();
-      } else {
-        throw new Error('Falha na configuração do webhook');
-      }
-    } catch (error) {
-      console.error('Erro na configuração:', error);
-      updateWebhookConfig('evolution', {
-        status: 'error',
-        last_test: new Date().toISOString(),
-        test_result: false
-      });
-
-      toast({
-        title: "Erro na configuração",
-        description: "Não foi possível configurar o webhook",
-        variant: "destructive",
-      });
-    } finally {
-      setConfiguring(false);
-      setTimeout(() => setSetupProgress(0), 2000);
-    }
-  };
-
   const testWebhook = async (type: keyof typeof webhookConfigs) => {
     const config = webhookConfigs[type];
     if (!config.url) {
@@ -329,35 +177,6 @@ export function InstanceWebhookConfig({
     const startTime = Date.now();
     
     try {
-      // Para webhook da Evolution API, usar método específico
-      if (type === 'evolution') {
-        const result = await checkWebhookStatus(instanceName);
-        const responseTime = Date.now() - startTime;
-        
-        updateWebhookConfig(type, {
-          status: result.configured ? 'active' : 'error',
-          last_test: new Date().toISOString(),
-          test_result: result.configured,
-          response_time: responseTime
-        });
-
-        saveWebhookTest({
-          timestamp: new Date().toISOString(),
-          type: 'evolution',
-          status: result.configured ? 'success' : 'error',
-          response_time: responseTime,
-          response_data: result
-        });
-
-        toast({
-          title: result.configured ? "Webhook ativo" : "Webhook inativo",
-          description: `Status verificado em ${responseTime}ms`,
-          variant: result.configured ? "default" : "destructive",
-        });
-        return;
-      }
-
-      // Para outros webhooks, fazer teste HTTP
       const response = await fetch(config.url, {
         method: 'POST',
         headers: {
@@ -386,32 +205,16 @@ export function InstanceWebhookConfig({
         response_time: responseTime
       });
 
-      saveWebhookTest({
-        timestamp: new Date().toISOString(),
-        type: type,
-        status: success ? 'success' : 'error',
-        response_time: responseTime
-      });
-
       toast({
         title: success ? "Teste enviado" : "Erro no teste",
         description: `Webhook testado em ${responseTime}ms`,
         variant: success ? "default" : "destructive",
       });
     } catch (error) {
-      const responseTime = Date.now() - startTime;
-      
       updateWebhookConfig(type, {
         status: 'error',
         last_test: new Date().toISOString(),
         test_result: false
-      });
-
-      saveWebhookTest({
-        timestamp: new Date().toISOString(),
-        type: type,
-        status: 'error',
-        response_time: responseTime
       });
 
       toast({
@@ -443,17 +246,6 @@ export function InstanceWebhookConfig({
     }
   };
 
-  const getStatusColor = (status: 'active' | 'inactive' | 'error') => {
-    switch (status) {
-      case 'active': return 'border-green-200 bg-green-50';
-      case 'error': return 'border-red-200 bg-red-50';
-      default: return 'border-gray-200 bg-gray-50';
-    }
-  };
-
-  const activeWebhooks = Object.values(webhookConfigs).filter(w => w.enabled && w.status === 'active').length;
-  const totalWebhooks = Object.values(webhookConfigs).filter(w => w.enabled).length;
-
   if (loading) {
     return (
       <Card>
@@ -478,191 +270,87 @@ export function InstanceWebhookConfig({
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Settings className="w-5 h-5" />
-                Configuração de Webhooks - {instanceName}
+                Configuração de Webhooks n8n - {instanceName}
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Configure webhooks específicos para esta instância
+                Configure webhooks n8n para esta instância
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-right">
-                <div className="text-sm font-medium">{activeWebhooks}/{totalWebhooks} Ativos</div>
-                <div className="text-xs text-muted-foreground">Webhooks configurados</div>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowHistory(!showHistory)}
-              >
-                <History className="w-4 h-4 mr-2" />
-                Histórico
-              </Button>
-              <Button
-                onClick={saveConfiguration}
-                disabled={saving}
-              >
-                {saving ? (
-                  <Clock className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-2" />
-                )}
-                Salvar
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={saveConfiguration}
+              disabled={saving}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Salvando...' : 'Salvar'}
+            </Button>
           </div>
-          {configuring && (
-            <div className="mt-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium">Configurando webhook...</span>
-              </div>
-              <Progress value={setupProgress} className="h-2" />
-            </div>
-          )}
         </CardHeader>
       </Card>
 
-      {/* Histórico de Testes */}
-      {showHistory && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="w-4 h-4" />
-              Histórico de Testes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {webhookTests.length === 0 ? (
-              <p className="text-muted-foreground text-center py-4">
-                Nenhum teste realizado ainda
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {webhookTests.map((test) => (
-                  <div key={test.id} className={`p-3 rounded border ${test.status === 'success' ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {test.status === 'success' ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-600" />
-                        )}
-                        <span className="font-medium capitalize">{test.type}</span>
-                        <Badge variant="outline">{test.response_time}ms</Badge>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {new Date(test.timestamp).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Configuração Detalhada */}
-      <Tabs defaultValue="evolution" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="evolution" className="flex items-center gap-2">
+      {/* Configuração de Webhooks */}
+      <Tabs defaultValue="n8n" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="n8n" className="flex items-center gap-2">
             <Webhook className="w-4 h-4" />
-            Evolution API
+            n8n Webhook
           </TabsTrigger>
-          <TabsTrigger value="custom">Webhook Personalizado</TabsTrigger>
-          <TabsTrigger value="n8n">n8n Integration</TabsTrigger>
+          <TabsTrigger value="custom" className="flex items-center gap-2">
+            <Globe className="w-4 h-4" />
+            Webhook Personalizado
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="evolution" className="space-y-4">
+        <TabsContent value="n8n" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Webhook Evolution API
+              <CardTitle className="flex items-center justify-between text-lg">
+                <div className="flex items-center gap-2">
+                  <Webhook className="w-5 h-5" />
+                  n8n Webhook
+                </div>
+                {getStatusBadge(webhookConfigs.n8n.status)}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>URL do Webhook</Label>
+                <Label htmlFor="n8n-url">URL do Webhook n8n</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={webhookConfigs.evolution.url}
-                    onChange={(e) => updateWebhookConfig('evolution', { url: e.target.value })}
-                    className="font-mono text-sm"
+                    id="n8n-url"
+                    placeholder="https://sua-instancia-n8n.com/webhook/..."
+                    value={webhookConfigs.n8n.url}
+                    onChange={(e) => updateWebhookConfig('n8n', { url: e.target.value })}
                   />
                   <Button
-                    variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(webhookConfigs.evolution.url, 'URL do webhook')}
+                    variant="outline"
+                    onClick={() => copyToClipboard(webhookConfigs.n8n.url, 'URL do n8n')}
+                    disabled={!webhookConfigs.n8n.url}
                   >
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Eventos do Webhook</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto">
-                  {availableEvents.map((event) => (
-                    <div key={event} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={event}
-                        checked={webhookConfigs.evolution.events?.includes(event) || false}
-                        onChange={(e) => {
-                          const currentEvents = webhookConfigs.evolution.events || [];
-                          const newEvents = e.target.checked
-                            ? [...currentEvents, event]
-                            : currentEvents.filter(ev => ev !== event);
-                          updateWebhookConfig('evolution', { events: newEvents });
-                        }}
-                        className="rounded border-border"
-                      />
-                      <label htmlFor={event} className="text-sm">{event}</label>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => testWebhook('n8n')}
+                  disabled={!webhookConfigs.n8n.url || testing === 'n8n'}
+                  className="flex items-center gap-2"
+                >
+                  <TestTube className="w-4 h-4" />
+                  {testing === 'n8n' ? 'Testando...' : 'Testar Webhook'}
+                </Button>
               </div>
 
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(webhookConfigs.evolution.status)}
-                    {webhookConfigs.evolution.last_test && (
-                      <span className="text-xs text-muted-foreground">
-                        Testado: {new Date(webhookConfigs.evolution.last_test).toLocaleTimeString()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => testWebhook('evolution')}
-                    disabled={testing === 'evolution'}
-                  >
-                    {testing === 'evolution' ? (
-                      <Clock className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <TestTube className="w-4 h-4" />
-                    )}
-                  </Button>
-                  <Button
-                    onClick={configureEvolutionWebhook}
-                    disabled={configuring}
-                    size="sm"
-                  >
-                    {configuring ? (
-                      <Clock className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Wrench className="w-4 h-4 mr-2" />
-                    )}
-                    Configurar
-                  </Button>
-                </div>
-              </div>
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  Configure um workflow n8n com um trigger Webhook para receber eventos desta instância.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>
@@ -670,95 +358,52 @@ export function InstanceWebhookConfig({
         <TabsContent value="custom" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Webhook Personalizado</CardTitle>
+              <CardTitle className="flex items-center justify-between text-lg">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Webhook Personalizado
+                </div>
+                {getStatusBadge(webhookConfigs.custom.status)}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={webhookConfigs.custom.enabled}
-                  onCheckedChange={(enabled) => updateWebhookConfig('custom', { enabled })}
-                />
-                <Label>Habilitar webhook personalizado</Label>
+              <div className="space-y-2">
+                <Label htmlFor="custom-url">URL do Webhook</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="custom-url"
+                    placeholder="https://sua-aplicacao.com/webhook"
+                    value={webhookConfigs.custom.url}
+                    onChange={(e) => updateWebhookConfig('custom', { url: e.target.value })}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => copyToClipboard(webhookConfigs.custom.url, 'URL personalizada')}
+                    disabled={!webhookConfigs.custom.url}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
-              {webhookConfigs.custom.enabled && (
-                <>
-                  <div className="space-y-2">
-                    <Label>URL do Webhook</Label>
-                    <Input
-                      value={webhookConfigs.custom.url}
-                      onChange={(e) => updateWebhookConfig('custom', { url: e.target.value })}
-                      placeholder="https://seu-servidor.com/webhook"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(webhookConfigs.custom.status)}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => testWebhook('custom')}
-                      disabled={testing === 'custom' || !webhookConfigs.custom.url}
-                    >
-                      {testing === 'custom' ? (
-                        <Clock className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <TestTube className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="n8n" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Integração n8n</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={webhookConfigs.n8n.enabled}
-                  onCheckedChange={(enabled) => updateWebhookConfig('n8n', { enabled })}
-                />
-                <Label>Habilitar integração com n8n</Label>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => testWebhook('custom')}
+                  disabled={!webhookConfigs.custom.url || testing === 'custom'}
+                  className="flex items-center gap-2"
+                >
+                  <TestTube className="w-4 h-4" />
+                  {testing === 'custom' ? 'Testando...' : 'Testar Webhook'}
+                </Button>
               </div>
 
-              {webhookConfigs.n8n.enabled && (
-                <>
-                  <div className="space-y-2">
-                    <Label>URL do Webhook n8n</Label>
-                    <Input
-                      value={webhookConfigs.n8n.url}
-                      onChange={(e) => updateWebhookConfig('n8n', { url: e.target.value })}
-                      placeholder="https://seu-n8n.com/webhook/whatsapp"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(webhookConfigs.n8n.status)}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => testWebhook('n8n')}
-                      disabled={testing === 'n8n' || !webhookConfigs.n8n.url}
-                    >
-                      {testing === 'n8n' ? (
-                        <Clock className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <TestTube className="w-4 h-4" />
-                      )}
-                    </Button>
-                  </div>
-                </>
-              )}
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertDescription>
+                  Configure seu endpoint para receber requisições POST com os dados dos eventos.
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </TabsContent>

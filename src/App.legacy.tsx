@@ -10,8 +10,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { queryClient } from "@/config/queryClient";
 import { setupGlobalErrorHandling } from "@/utils/production-logger";
 import { ServiceWorkerProvider } from "@/hooks/useServiceWorker";
-import { WhatsAppEvolutionProvider } from "@/contexts/WhatsAppEvolutionContext";
-import { WhatsAppConnectionProvider } from "@/contexts/WhatsAppConnectionContext";
+// Removed Evolution API contexts
 import { PresenceProvider } from '@/contexts/PresenceContext';
 import { PushNotificationProvider } from '@/components/notifications/PushNotifications';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -349,20 +348,16 @@ const App = () => {
               <ConnectionNotificationProvider>
                 <PushNotificationProvider>
                   <PresenceProvider>
-                    <WhatsAppEvolutionProvider>
-                      <WhatsAppConnectionProvider>
-                        <AdminAuthProvider>
-                          <Suspense fallback={<FastFallback />}>
-                            <TooltipProvider>
-                              <Toaster />
-                              <BrowserRouter>
-                                <AppRoutes />
-                              </BrowserRouter>
-                            </TooltipProvider>
-                          </Suspense>
-                        </AdminAuthProvider>
-                      </WhatsAppConnectionProvider>
-                    </WhatsAppEvolutionProvider>
+                     <AdminAuthProvider>
+                       <Suspense fallback={<FastFallback />}>
+                         <TooltipProvider>
+                           <Toaster />
+                           <BrowserRouter>
+                             <AppRoutes />
+                           </BrowserRouter>
+                         </TooltipProvider>
+                       </Suspense>
+                     </AdminAuthProvider>
                   </PresenceProvider>
                 </PushNotificationProvider>
               </ConnectionNotificationProvider>

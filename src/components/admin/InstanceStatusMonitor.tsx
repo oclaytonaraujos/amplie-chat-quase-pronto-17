@@ -7,10 +7,8 @@ import {
   Clock, 
   AlertTriangle, 
   CheckCircle2,
-  RefreshCw,
-  Zap
+  RefreshCw
 } from 'lucide-react';
-import { useEvolutionAPIComplete } from '@/hooks/useEvolutionAPIComplete';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -40,25 +38,18 @@ export function InstanceStatusMonitor({
   const [monitoring, setMonitoring] = useState(false);
   const [statuses, setStatuses] = useState<InstanceStatus[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  
-  const { getConnectionState, isServiceAvailable } = useEvolutionAPIComplete();
 
   const checkInstanceStatus = async (instanceName: string): Promise<InstanceStatus> => {
     const startTime = Date.now();
     
     try {
-      const connectionState = await getConnectionState(instanceName);
-      const responseTime = Date.now() - startTime;
-      
-      const status = connectionState?.instance?.state || 'unknown';
-      const isHealthy = status === 'open' || status === 'connected';
-      
+      // Since Evolution API is removed, status checks are now via n8n
       return {
         instanceName,
-        status,
+        status: 'via_n8n',
         lastChecked: new Date(),
-        responseTime,
-        isHealthy,
+        responseTime: Date.now() - startTime,
+        isHealthy: false, // Will need n8n integration
       };
     } catch (error) {
       return {
@@ -73,7 +64,7 @@ export function InstanceStatusMonitor({
   };
 
   const checkAllInstances = async () => {
-    if (!isServiceAvailable || instances.length === 0) return;
+    if (instances.length === 0) return;
 
     setMonitoring(true);
     try {
@@ -99,47 +90,20 @@ export function InstanceStatusMonitor({
     }
   };
 
-  // Verificação automática a cada 3 segundos
   useEffect(() => {
     if (instances.length === 0) return;
 
     checkAllInstances();
-    const interval = setInterval(checkAllInstances, 3000);
+    const interval = setInterval(checkAllInstances, 10000); // Check every 10 seconds now
     
     return () => clearInterval(interval);
-  }, [instances.length, isServiceAvailable]);
-
-  const getStatusColor = (status: InstanceStatus) => {
-    if (status.isHealthy) return 'text-green-600';
-    if (status.status === 'connecting') return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getStatusIcon = (status: InstanceStatus) => {
-    if (status.isHealthy) return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-    if (status.status === 'connecting') return <Clock className="w-4 h-4 text-yellow-500" />;
-    return <AlertTriangle className="w-4 h-4 text-red-500" />;
-  };
+  }, [instances.length]);
 
   const getStatusBadge = (status: InstanceStatus) => {
-    if (status.isHealthy) {
-      return <Badge className="bg-green-100 text-green-800">Online</Badge>;
-    }
-    if (status.status === 'connecting') {
-      return <Badge className="bg-yellow-100 text-yellow-800">Conectando</Badge>;
-    }
-    return <Badge className="bg-red-100 text-red-800">Offline</Badge>;
+    return <Badge className="bg-blue-100 text-blue-800">Via n8n</Badge>;
   };
 
-  const healthyCount = statuses.filter(s => s.isHealthy).length;
-  const connectingCount = statuses.filter(s => s.status === 'connecting').length;
-  const errorCount = statuses.filter(s => !s.isHealthy && s.status !== 'connecting').length;
-
-  const averageResponseTime = statuses.length > 0 
-    ? statuses.reduce((sum, s) => sum + (s.responseTime || 0), 0) / statuses.length 
-    : 0;
-
-  if (!isServiceAvailable) {
+  if (instances.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -151,8 +115,7 @@ export function InstanceStatusMonitor({
         <CardContent>
           <div className="text-center py-4 text-muted-foreground">
             <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
-            <p>Serviço Evolution API indisponível</p>
-            <p className="text-sm">Configure a Evolution API para habilitar o monitoramento</p>
+            <p>Nenhuma instância encontrada</p>
           </div>
         </CardContent>
       </Card>
@@ -165,7 +128,7 @@ export function InstanceStatusMonitor({
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5" />
-            Monitor de Status em Tempo Real
+            Monitor via n8n
           </div>
           <Button
             size="sm"
@@ -183,90 +146,31 @@ export function InstanceStatusMonitor({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Resumo Geral */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{healthyCount}</div>
-            <div className="text-sm text-muted-foreground">Online</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{connectingCount}</div>
-            <div className="text-sm text-muted-foreground">Conectando</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{errorCount}</div>
-            <div className="text-sm text-muted-foreground">Offline</div>
-          </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">
-              {averageResponseTime > 0 ? `${Math.round(averageResponseTime)}ms` : '-'}
-            </div>
-            <div className="text-sm text-muted-foreground">Tempo Médio</div>
-          </div>
+        <div className="text-center py-4 text-muted-foreground">
+          <AlertTriangle className="w-8 h-8 mx-auto mb-2" />
+          <p>Monitoramento agora via n8n</p>
+          <p className="text-sm">Configure fluxos n8n para status em tempo real</p>
         </div>
 
-        {/* Lista de Status */}
-        {statuses.length > 0 && (
+        {/* Lista básica de instâncias */}
+        {instances.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Status Individual</h4>
-              {lastUpdate && (
-                <span className="text-xs text-muted-foreground">
-                  Última atualização: {format(lastUpdate, 'HH:mm:ss', { locale: ptBR })}
-                </span>
-              )}
-            </div>
-            
-            <div className="max-h-60 overflow-y-auto space-y-2">
-              {statuses.map((status) => {
-                const instance = instances.find(i => i.instance_name === status.instanceName);
-                return (
-                  <div key={status.instanceName} className="flex items-center justify-between p-2 border rounded-lg">
-                    <div className="flex items-center gap-2">
-                      {getStatusIcon(status)}
-                      <div>
-                        <div className="font-medium text-sm">{status.instanceName}</div>
-                        {instance?.empresa_nome && (
-                          <div className="text-xs text-muted-foreground">{instance.empresa_nome}</div>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {status.responseTime && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Zap className="w-3 h-3" />
-                          {status.responseTime}ms
-                        </div>
+            <h4 className="text-sm font-medium">Instâncias Registradas</h4>
+            <div className="max-h-40 overflow-y-auto space-y-2">
+              {instances.map((instance) => (
+                <div key={instance.id} className="flex items-center justify-between p-2 border rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-blue-500" />
+                    <div>
+                      <div className="font-medium text-sm">{instance.instance_name}</div>
+                      {instance.empresa_nome && (
+                        <div className="text-xs text-muted-foreground">{instance.empresa_nome}</div>
                       )}
-                      {getStatusBadge(status)}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Estado de carregamento */}
-        {monitoring && statuses.length === 0 && (
-          <div className="text-center py-4">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
-            <p className="text-sm text-muted-foreground">Verificando status das instâncias...</p>
-          </div>
-        )}
-
-        {/* Alertas */}
-        {errorCount > 0 && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-600 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-red-800">Instâncias com problemas detectadas</p>
-                <p className="text-red-700">
-                  {errorCount} instância(s) offline ou com erro. Verifique as configurações.
-                </p>
-              </div>
+                  <Badge className="bg-blue-100 text-blue-800">n8n</Badge>
+                </div>
+              ))}
             </div>
           </div>
         )}

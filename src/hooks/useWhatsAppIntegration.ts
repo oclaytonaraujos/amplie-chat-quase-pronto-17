@@ -102,15 +102,8 @@ export function useWhatsAppIntegration() {
         throw new Error('Configuração global Evolution API não encontrada');
       }
 
-      // Importar dinamicamente o serviço global
-      const { EvolutionApiGlobalService } = await import('@/services/evolution-api');
-      const globalService = new EvolutionApiGlobalService(
-        globalConfig.server_url,
-        globalConfig.api_key
-      );
-
-      // Usar a conexão global para buscar instâncias (CRUD operation)
-      const instancesData = await globalService.fetchInstances();
+      // Evolution API removed - sync now via n8n webhooks
+      // Instances will be managed through n8n workflows
 
       logger.info('Instâncias sincronizadas via API Global', {
         component: 'useWhatsAppIntegration'

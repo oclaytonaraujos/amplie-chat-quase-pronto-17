@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { NotificationDropdown } from './NotificationDropdown';
 import { SettingsDropdown } from './SettingsDropdown';
 import { ProfileDropdown } from './ProfileDropdown';
-import { ConnectionStatusBar } from './ConnectionStatusBar';
+// ConnectionStatusBar removed - now using n8n
 
 interface HeaderProps {
   title: string;
