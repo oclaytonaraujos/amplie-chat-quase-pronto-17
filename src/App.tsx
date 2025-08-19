@@ -344,9 +344,9 @@ const App = () => {
   return (
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider>
-          <ServiceWorkerProvider>
-            <AuthProvider>
+        <ServiceWorkerProvider>
+          <AuthProvider>
+            <ThemeProvider>
               <ConnectionNotificationProvider>
                 <PushNotificationProvider>
                   <PresenceProvider>
@@ -367,9 +367,9 @@ const App = () => {
                   </PresenceProvider>
                 </PushNotificationProvider>
               </ConnectionNotificationProvider>
-            </AuthProvider>
-          </ServiceWorkerProvider>
-        </ThemeProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </ServiceWorkerProvider>
       </QueryClientProvider>
     </GlobalErrorBoundary>
   );
