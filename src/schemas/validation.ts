@@ -117,40 +117,6 @@ export const evolutionApiConfigSchema = z.object({
   read_messages: z.boolean().optional(),
   read_status: z.boolean().optional()
 });
-  email: z.string()
-    .min(1, 'Email é obrigatório')
-    .email('Email inválido')
-    .max(100, 'Email muito longo'),
-    
-  password: z.string()
-    .min(8, 'Senha deve ter pelo menos 8 caracteres')
-    .max(100, 'Senha muito longa')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, 'Senha deve conter ao menos uma letra minúscula, uma maiúscula e um número'),
-    
-  telefone: z.string()
-    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
-    .max(15, 'Telefone muito longo')
-    .regex(/^[\d\s\-\(\)\+]+$/, 'Telefone contém caracteres inválidos'),
-    
-  nome: z.string()
-    .min(2, 'Nome deve ter pelo menos 2 caracteres')
-    .max(100, 'Nome muito longo')
-    .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras e espaços'),
-    
-  documento: z.string()
-    .min(11, 'Documento inválido')
-    .max(18, 'Documento muito longo')
-    .regex(/^[\d\.\-\/]+$/, 'Documento contém caracteres inválidos'),
-    
-  url: z.string()
-    .url('URL inválida')
-    .max(255, 'URL muito longa'),
-    
-  slug: z.string()
-    .min(3, 'Slug deve ter pelo menos 3 caracteres')
-    .max(50, 'Slug muito longo')
-    .regex(/^[a-z0-9-]+$/, 'Slug deve conter apenas letras minúsculas, números e hífens'),
-};
 
 // Schema para autenticação
 export const authSchemas = {

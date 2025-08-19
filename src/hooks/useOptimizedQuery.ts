@@ -35,14 +35,15 @@ export function useOptimizedQuery<T>(
 
   // Query function otimizada com cache
   const optimizedQueryFn = useCallback(async (): Promise<T> => {
-    logger.time(`query-${cacheKey}`, 'useOptimizedQuery');
+    const startTime = performance.now();
+    logger.debug(`Starting query: ${cacheKey}`, { component: 'useOptimizedQuery' });
     
     try {
       // Tentar cache local primeiro se offline cache estiver habilitado
       if (enableOfflineCache) {
         const cachedData = performanceCache.get<T>(cacheKey);
         if (cachedData) {
-          logger.debug(`Cache hit for ${cacheKey}`, undefined, 'useOptimizedQuery');
+          logger.debug(`Cache hit for ${cacheKey}`, { component: 'useOptimizedQuery' });
           return cachedData;
         }
       }
@@ -55,17 +56,18 @@ export function useOptimizedQuery<T>(
         performanceCache.set(cacheKey, result, cacheTime);
       }
 
-      logger.timeEnd(`query-${cacheKey}`, 'useOptimizedQuery');
+      const duration = performance.now() - startTime;
+      logger.debug(`Query completed: ${cacheKey} (${duration.toFixed(2)}ms)`, { component: 'useOptimizedQuery' });
       return result;
 
     } catch (error) {
-      logger.error(`Query failed for ${cacheKey}`, error, undefined, 'useOptimizedQuery');
+      logger.error(`Query failed for ${cacheKey}`, { component: 'useOptimizedQuery' }, error as Error);
       
       // Tentar cache como fallback em caso de erro
       if (enableOfflineCache) {
         const cachedData = performanceCache.get<T>(cacheKey);
         if (cachedData) {
-          logger.warn(`Using cached data as fallback for ${cacheKey}`, undefined, 'useOptimizedQuery');
+          logger.warn(`Using cached data as fallback for ${cacheKey}`, { component: 'useOptimizedQuery' });
           return cachedData;
         }
       }
