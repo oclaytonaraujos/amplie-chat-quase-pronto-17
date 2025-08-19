@@ -36,8 +36,11 @@ serve(async (req) => {
     let result = null
     
     switch (webhook_type || type) {
-      case 'messages':
-        result = await processMessage(supabase, data, empresa_id)
+      case 'send_messages':
+        result = await processSendMessage(supabase, data, empresa_id)
+        break
+      case 'receive_messages':  
+        result = await processReceiveMessage(supabase, data, empresa_id)
         break
       case 'instances':
         result = await processInstance(supabase, data, empresa_id, action)
@@ -82,36 +85,41 @@ serve(async (req) => {
   }
 })
 
-async function processMessage(supabase: any, data: any, empresa_id: string) {
-  console.log('Processando mensagem:', data)
+async function processSendMessage(supabase: any, data: any, empresa_id: string) {
+  console.log('Processando envio de mensagem:', data)
   
-  if (data.action === 'send') {
-    if (data.message_id) {
-      await supabase
-        .from('mensagens')
-        .update({ 
-          status: data.success ? 'enviada' : 'falha_envio',
-          metadata: data.metadata || {}
-        })
-        .eq('id', data.message_id)
-    }
-  } else if (data.action === 'receive') {
-    const { error } = await supabase
+  if (data.message_id) {
+    await supabase
       .from('mensagens')
-      .insert({
-        conversa_id: data.conversa_id,
-        remetente: data.from,
-        conteudo: data.content,
-        tipo: data.type || 'text',
-        timestamp_whatsapp: data.timestamp,
-        empresa_id: empresa_id,
+      .update({ 
+        status: data.success ? 'enviada' : 'falha_envio',
         metadata: data.metadata || {}
       })
-    
-    if (error) throw error
+      .eq('id', data.message_id)
   }
   
-  return { processed: true, action: data.action }
+  return { processed: true, action: 'send', success: data.success }
+}
+
+async function processReceiveMessage(supabase: any, data: any, empresa_id: string) {
+  console.log('Processando recebimento de mensagem:', data)
+  
+  // Inserir nova mensagem recebida
+  const { error } = await supabase
+    .from('mensagens')
+    .insert({
+      conversa_id: data.conversa_id,
+      remetente: data.from,
+      conteudo: data.content,
+      tipo: data.type || 'text',
+      timestamp_whatsapp: data.timestamp,
+      empresa_id: empresa_id,
+      metadata: data.metadata || {}
+    })
+  
+  if (error) throw error
+  
+  return { processed: true, action: 'receive' }
 }
 
 async function processInstance(supabase: any, data: any, empresa_id: string, action: string) {

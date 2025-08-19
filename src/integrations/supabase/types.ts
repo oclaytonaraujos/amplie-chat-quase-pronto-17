@@ -1829,6 +1829,8 @@ export type Database = {
           id: string
           instances_webhook_url: string | null
           messages_webhook_url: string | null
+          receive_messages_webhook_url: string | null
+          send_messages_webhook_url: string | null
           updated_at: string
         }
         Insert: {
@@ -1838,6 +1840,8 @@ export type Database = {
           id?: string
           instances_webhook_url?: string | null
           messages_webhook_url?: string | null
+          receive_messages_webhook_url?: string | null
+          send_messages_webhook_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -1847,6 +1851,8 @@ export type Database = {
           id?: string
           instances_webhook_url?: string | null
           messages_webhook_url?: string | null
+          receive_messages_webhook_url?: string | null
+          send_messages_webhook_url?: string | null
           updated_at?: string
         }
         Relationships: []
