@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { queryClient } from "@/config/queryClient";
 import { setupGlobalErrorHandling } from "@/utils/production-logger";
 import { OptimizedAuthProvider } from '@/contexts/OptimizedAuthProvider';
+import { WhatsAppConnectionProvider } from '@/contexts/WhatsAppConnectionContext';
 import { ConnectionNotificationProvider } from '@/contexts/ConnectionNotificationContext';
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
 
@@ -317,8 +318,9 @@ const App = () => {
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <OptimizedAuthProvider>
-          <ThemeProvider>
-            <ConnectionNotificationProvider>
+          <WhatsAppConnectionProvider>
+            <ThemeProvider>
+              <ConnectionNotificationProvider>
               <AdminAuthProvider>
                 <Suspense fallback={<FullScreenFallback />}>
                   <TooltipProvider>
@@ -331,6 +333,7 @@ const App = () => {
               </AdminAuthProvider>
             </ConnectionNotificationProvider>
           </ThemeProvider>
+        </WhatsAppConnectionProvider>
         </OptimizedAuthProvider>
       </QueryClientProvider>
     </GlobalErrorBoundary>
