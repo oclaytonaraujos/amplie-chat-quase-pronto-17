@@ -34,6 +34,21 @@ export function N8nWebhookConfig() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Tentar carregar configuração offline primeiro se disponível
+    const offlineConfig = localStorage.getItem('n8n_webhook_config_offline');
+    if (offlineConfig) {
+      try {
+        const parsedConfig = JSON.parse(offlineConfig);
+        setConfig(parsedConfig);
+        toast({
+          title: "Configuração Offline Carregada",
+          description: "Usando configuração salva localmente",
+        });
+      } catch (e) {
+        console.warn('Erro ao carregar configuração offline:', e);
+      }
+    }
+    
     loadConfig();
   }, []);
 
@@ -41,9 +56,18 @@ export function N8nWebhookConfig() {
     try {
       setLoading(true);
       
-      // Obter empresa_id do usuário atual
+      // Verificar se Supabase está disponível
       const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
+      if (userError) {
+        console.warn('Supabase indisponível, usando configuração padrão:', userError);
+        // Em modo offline, usar configuração padrão
+        setConfig(prev => ({ 
+          ...prev, 
+          empresa_id: 'offline-mode',
+          // Manter valores existentes se já estavam preenchidos
+        }));
+        return;
+      }
 
       const { data: profile } = await supabase
         .from('profiles')
@@ -73,9 +97,16 @@ export function N8nWebhookConfig() {
       }
     } catch (error: any) {
       console.error('Erro ao carregar configuração:', error);
+      
+      // Em caso de erro, ainda permitir que o usuário configure URLs
+      setConfig(prev => ({ 
+        ...prev, 
+        empresa_id: prev.empresa_id || 'offline-mode'
+      }));
+      
       toast({
-        title: "Erro",
-        description: "Erro ao carregar configuração N8N",
+        title: "Modo Offline",
+        description: "Conexão indisponível. Você pode configurar as URLs, mas elas serão salvas apenas localmente.",
         variant: "destructive",
       });
     } finally {
@@ -86,6 +117,27 @@ export function N8nWebhookConfig() {
   const saveConfig = async () => {
     try {
       setSaving(true);
+
+      // Verificar se está em modo offline
+      if (config.empresa_id === 'offline-mode') {
+        // Salvar no localStorage em modo offline
+        const configData = {
+          empresa_id: config.empresa_id,
+          url_envio_mensagens: config.url_envio_mensagens || null,
+          url_recebimento_mensagens: config.url_recebimento_mensagens || null,
+          url_configuracao_instancia: config.url_configuracao_instancia || null,
+          url_boot: config.url_boot || null,
+          ativo: config.ativo
+        };
+
+        localStorage.setItem('n8n_webhook_config_offline', JSON.stringify(configData));
+        
+        toast({
+          title: "Salvo Localmente",
+          description: "Configuração salva no modo offline. Será sincronizada quando a conexão for reestabelecida.",
+        });
+        return;
+      }
 
       const configData = {
         empresa_id: config.empresa_id,
@@ -114,11 +166,32 @@ export function N8nWebhookConfig() {
       await loadConfig();
     } catch (error: any) {
       console.error('Erro ao salvar configuração:', error);
-      toast({
-        title: "Erro",
-        description: "Erro ao salvar configuração N8N",
-        variant: "destructive",
-      });
+      
+      // Em caso de erro, tentar salvar offline
+      try {
+        const configData = {
+          empresa_id: config.empresa_id,
+          url_envio_mensagens: config.url_envio_mensagens || null,
+          url_recebimento_mensagens: config.url_recebimento_mensagens || null,
+          url_configuracao_instancia: config.url_configuracao_instancia || null,
+          url_boot: config.url_boot || null,
+          ativo: config.ativo
+        };
+
+        localStorage.setItem('n8n_webhook_config_offline', JSON.stringify(configData));
+        
+        toast({
+          title: "Salvo Localmente",
+          description: "Não foi possível salvar online. Configuração salva localmente.",
+          variant: "destructive",
+        });
+      } catch (offlineError) {
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar configuração N8N",
+          variant: "destructive",
+        });
+      }
     } finally {
       setSaving(false);
     }
@@ -185,15 +258,27 @@ export function N8nWebhookConfig() {
     );
   }
 
+  const isOfflineMode = config.empresa_id === 'offline-mode';
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             ⚡ Configuração de Webhooks N8N
+            {isOfflineMode && (
+              <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                Modo Offline
+              </span>
+            )}
           </CardTitle>
           <CardDescription>
             Configure as URLs dos webhooks N8N para integração com o sistema
+            {isOfflineMode && (
+              <div className="mt-2 p-2 bg-yellow-50 rounded text-sm text-yellow-700">
+                ⚠️ Sistema em modo offline. As configurações serão salvas localmente e sincronizadas quando a conexão for reestabelecida.
+              </div>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
