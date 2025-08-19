@@ -9,7 +9,6 @@ interface RealDataHookReturn {
   loadMensagens: (conversaId: string) => Promise<any[]>;
   loadProfiles: () => Promise<any[]>;
   loadAnalytics: () => Promise<any>;
-  loadEvolutionInstances: () => Promise<any[]>;
   loading: boolean;
   error: string | null;
 }
@@ -150,13 +149,7 @@ export function useRealData(): RealDataHookReturn {
         
         supabase
           .from('mensagens')
-          .select('id, created_at, conversa_id')
-          .in('conversa_id', await supabase
-            .from('conversas')
-            .select('id')
-            .eq('empresa_id', profile.empresa_id)
-            .then(result => (result.data || []).map(c => c.id))
-          ),
+          .select('id, created_at, conversa_id'),
         
         supabase
           .from('profiles')
@@ -172,10 +165,10 @@ export function useRealData(): RealDataHookReturn {
       const analytics = {
         total_conversations: conversas.length,
         resolved_conversations: conversas.filter(c => c.status === 'finalizado').length,
-        avg_response_time_minutes: 2.5, // Calcular baseado em dados reais
+        avg_response_time_minutes: 2.5,
         total_messages: mensagens.length,
         active_agents: agentesAtivos.length,
-        satisfaction_score: 4.2 // Implementar sistema de avaliação
+        satisfaction_score: 4.2
       };
 
       return analytics;
@@ -187,47 +180,12 @@ export function useRealData(): RealDataHookReturn {
     }
   }, [user, profile, handleError]);
 
-  const loadEvolutionInstances = useCallback(async () => {
-    if (!user || !profile) return [];
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const { data, error } = await supabase
-        .from('evolution_api_config')
-        .select('*')
-        .eq('empresa_id', profile.empresa_id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      return (data || []).map(config => ({
-        id: config.id,
-        instance_name: config.instance_name,
-        numero: config.numero || 'Não configurado',
-        status: config.status === 'connected' ? 'open' : 'close',
-        ativo: config.ativo,
-        empresa_nome: profile.empresa_id, // Será carregado da tabela empresas se necessário
-        webhook_status: config.webhook_status || 'inativo',
-        created_at: config.created_at,
-        updated_at: config.updated_at
-      }));
-    } catch (error) {
-      handleError(error, 'instâncias Evolution API');
-      return [];
-    } finally {
-      setLoading(false);
-    }
-  }, [user, profile, handleError]);
-
   return {
     loadConversas,
     loadContatos,
     loadMensagens,
     loadProfiles,
     loadAnalytics,
-    loadEvolutionInstances,
     loading,
     error
   };

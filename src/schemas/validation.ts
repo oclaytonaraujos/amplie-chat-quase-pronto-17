@@ -108,14 +108,12 @@ export const uploadSchema = z.object({
   return true;
 }, "Arquivo inválido");
 
-// Validação para configurações avançadas
-export const evolutionApiConfigSchema = z.object({
-  instance_name: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/),
-  webhook_url: z.string().url().optional(),
-  webhook_events: z.array(z.string()).optional(),
-  always_online: z.boolean().optional(),
-  read_messages: z.boolean().optional(),
-  read_status: z.boolean().optional()
+// Validação para configurações de n8n webhook
+export const n8nWebhookSchema = z.object({
+  webhook_name: z.string().min(3).max(50),
+  webhook_url: z.string().url(),
+  events: z.array(z.string()).optional(),
+  active: z.boolean().optional()
 });
 
 // Schema para autenticação

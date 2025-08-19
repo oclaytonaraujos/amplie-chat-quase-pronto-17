@@ -103,7 +103,7 @@ export default function PermissoesAvancadas() {
           id: '2',
           nome: 'Técnico Integrações',
           descricao: 'Responsável por configurar integrações e APIs',
-          permissoes: ['whatsapp', 'evolution', 'n8n', 'api', 'automacao'],
+          permissoes: ['whatsapp', 'n8n', 'api', 'automacao'],
           ativo: true,
           created_at: new Date().toISOString()
         }

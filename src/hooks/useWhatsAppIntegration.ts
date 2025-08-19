@@ -45,11 +45,11 @@ export function useWhatsAppIntegration() {
 
       setConnections((data || []).map(conn => ({
         id: conn.id,
-        nome: conn.evolution_instance_name || conn.nome || 'N/A',
+        nome: conn.nome || 'N/A',
         numero: conn.numero || 'N/A',
-        status: conn.evolution_status || conn.status || 'desconectado',
+        status: conn.status || 'desconectado',
         ativo: conn.ativo,
-        qr_code: conn.evolution_qr_code || conn.qr_code,
+        qr_code: conn.qr_code,
         ultimo_ping: conn.ultimo_ping
       })));
     } catch (error) {

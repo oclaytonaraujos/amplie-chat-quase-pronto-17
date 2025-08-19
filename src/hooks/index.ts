@@ -1,10 +1,9 @@
-// Unified WhatsApp hook - nova arquitetura simplificada
-export { useWhatsApp } from './useWhatsApp';
+// Hooks simplificados para n8n
+export { useAtendimentoReal } from './useAtendimentoReal';
 
 // Compatibility hooks - mantém código existente funcionando
 export {
   useWhatsAppConnection,
-  useEvolutionApiConfig,
   useWhatsAppEvolution,
   useWhatsAppManager,
   useWhatsAppIntegration,

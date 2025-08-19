@@ -3,11 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-// Removed monitoring components
-import { useAllInstances } from '@/hooks/useAllInstances';
+// Removed monitoring components - now using n8n
 import { 
   Activity, 
-  BarChart3, 
+  BarChart3,
   Settings, 
   Plus,
   Smartphone,
@@ -18,7 +17,11 @@ import {
 import { cn } from '@/lib/utils';
 
 export function ConnectionDashboard() {
-  const { instances, loading, getStats } = useAllInstances();
+  // Simplified for n8n - static data
+  const instances: any[] = [];
+  const loading = false;
+  const getStats = () => ({ total: 0, connected: 0, disconnected: 0 });
+
   const stats = getStats();
 
   const getStatusBadge = (status: string) => {

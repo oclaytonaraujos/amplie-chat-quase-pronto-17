@@ -12,8 +12,4 @@ export function WhatsAppProvider({ children }: WhatsAppProviderProps) {
   return <>{children}</>;
 }
 
-// Exports para compatibilidade
-export { WhatsAppProvider as WhatsAppEvolutionProvider };
-export { WhatsAppProvider as WhatsAppUnifiedProvider };
-export { WhatsAppProvider as WhatsAppConnectionProvider };
-export { WhatsAppProvider as EvolutionApiProvider };
+export { WhatsAppProvider as N8nProvider };

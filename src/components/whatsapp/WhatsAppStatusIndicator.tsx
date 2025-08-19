@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Smartphone, Wifi, WifiOff, Clock, AlertCircle, QrCode } from 'lucide-react';
-import { useWhatsApp } from '@/hooks/useWhatsApp';
+import { useWhatsAppEvolution } from '@/hooks/useWhatsAppCompatibility';
 
 interface WhatsAppStatusIndicatorProps {
   instanceName?: string;
@@ -47,7 +47,8 @@ export function WhatsAppStatusIndicator({
   showAll = false, 
   compact = false 
 }: WhatsAppStatusIndicatorProps) {
-  const { instances, isLoading, hasConnectedInstances } = useWhatsApp();
+  const { instances, isLoading } = useWhatsAppEvolution();
+  const hasConnectedInstances = instances.length > 0;
 
   if (isLoading) {
     return (

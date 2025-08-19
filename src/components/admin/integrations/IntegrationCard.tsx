@@ -15,7 +15,7 @@ import {
 interface IntegrationCardProps {
   name: string;
   description: string;
-  type: 'evolution' | 'n8n' | 'whatsapp' | 'webhook' | 'chatbot';
+  type: 'n8n' | 'whatsapp' | 'webhook' | 'chatbot';
   status: 'connected' | 'disconnected' | 'error' | 'configuring';
   lastActivity?: string;
   metrics?: {
@@ -53,7 +53,7 @@ const statusConfig = {
 
 const typeConfig = {
   evolution: { color: 'bg-blue-100 text-blue-800', label: 'Evolution API' },
-  n8n: { color: 'bg-purple-100 text-purple-800', label: 'N8N' },
+  n8n: { color: 'bg-purple-100 text-purple-800', label: 'n8n' },
   whatsapp: { color: 'bg-green-100 text-green-800', label: 'WhatsApp' },
   webhook: { color: 'bg-orange-100 text-orange-800', label: 'Webhook' },
   chatbot: { color: 'bg-indigo-100 text-indigo-800', label: 'Chatbot' }

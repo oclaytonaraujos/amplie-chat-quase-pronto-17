@@ -163,10 +163,6 @@ export default function IntegrationTester({ integrations }: IntegrationTesterPro
         payload: '{\n  "event": "message_received",\n  "data": {\n    "from": "+5511999999999",\n    "message": "Olá!",\n    "timestamp": "2024-01-01T00:00:00Z"\n  }\n}',
         headers: '{\n  "Content-Type": "application/json",\n  "User-Agent": "Amplie-Chat-Webhook"\n}'
       },
-      evolution: {
-        payload: '{\n  "instance": "default",\n  "data": {\n    "key": {\n      "remoteJid": "5511999999999@s.whatsapp.net",\n      "fromMe": false\n    },\n    "message": {\n      "conversation": "Teste do Amplie Chat"\n    }\n  }\n}',
-        headers: '{\n  "Content-Type": "application/json",\n  "apikey": "YOUR_API_KEY"\n}'
-      },
       n8n: {
         payload: '{\n  "trigger": "test",\n  "data": {\n    "customer_id": "123",\n    "message": "Teste de automação"\n  }\n}',
         headers: '{\n  "Content-Type": "application/json",\n  "Authorization": "Bearer YOUR_TOKEN"\n}'
@@ -261,11 +257,8 @@ export default function IntegrationTester({ integrations }: IntegrationTesterPro
                       <Button variant="outline" size="sm" onClick={() => loadTemplate('webhook')}>
                         Webhook
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => loadTemplate('evolution')}>
-                        Evolution
-                      </Button>
                       <Button variant="outline" size="sm" onClick={() => loadTemplate('n8n')}>
-                        N8N
+                        n8n
                       </Button>
                     </div>
                   </div>

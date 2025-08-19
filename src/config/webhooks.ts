@@ -7,8 +7,8 @@
 const SUPABASE_PROJECT_URL = 'https://obtpghqvrygzcukdaiej.supabase.co';
 
 export const WEBHOOK_URLS = {
-  // Evolution API Webhook - usar sempre a edge function
-  EVOLUTION_API: `${SUPABASE_PROJECT_URL}/functions/v1/whatsapp-webhook-evolution`,
+  // n8n Webhook - usar sempre a edge function
+  N8N_WEBHOOK: `${SUPABASE_PROJECT_URL}/functions/v1/n8n-webhook-receive`,
   
   // Webhook genérico do WhatsApp (compatibilidade)
   WHATSAPP_GENERIC: `${SUPABASE_PROJECT_URL}/functions/v1/whatsapp-webhook`,

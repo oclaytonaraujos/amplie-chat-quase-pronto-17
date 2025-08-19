@@ -89,7 +89,7 @@ export function WhatsAppTab() {
               <div className="p-4 bg-secondary/5 rounded-xl border border-secondary/10">
                 <h4 className="font-medium text-secondary-foreground">3. Chatbot Sender</h4>
                 <p className="text-muted-foreground text-xs mt-1">
-                  Envia mensagens formatadas via Evolution API
+                  Envia mensagens formatadas via n8n webhooks
                 </p>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { useWhatsApp } from '@/hooks/useWhatsApp';
+import { useWhatsAppEvolution } from '@/hooks/useWhatsAppCompatibility';
 import { Loader2, Smartphone } from 'lucide-react';
 
 interface WhatsAppConnectionSelectorProps {
@@ -17,7 +17,7 @@ export function WhatsAppConnectionSelector({
   label = "Conexão WhatsApp",
   placeholder = "Selecione uma conexão"
 }: WhatsAppConnectionSelectorProps) {
-  const { instances, isLoading } = useWhatsApp();
+  const { instances, isLoading } = useWhatsAppEvolution();
 
   if (isLoading) {
     return (
@@ -84,7 +84,7 @@ export function MultiWhatsAppConnectionSelector({
   label?: string;
   placeholder?: string;
 }) {
-  const { instances, isLoading } = useWhatsApp();
+  const { instances, isLoading } = useWhatsAppEvolution();
 
   const handleConnectionToggle = (instanceName: string) => {
     const newValue = value.includes(instanceName)
