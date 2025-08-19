@@ -4,20 +4,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Settings, Zap, Bot, MessageSquare, Server, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
-import { SimplifiedN8nConfig } from './SimplifiedN8nConfig';
-import { useSimplifiedN8n } from '@/hooks/useSimplifiedN8n';
+import { SimpleWebhookConfig } from './SimpleWebhookConfig';
+import { useUnifiedWebhooks } from '@/hooks/useUnifiedWebhooks';
 
 export function IntegrationsDashboard() {
-  const { config, loading } = useSimplifiedN8n();
+  const { config, loading } = useUnifiedWebhooks();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Calculate status from config
   const status = {
-    overall_enabled: !!(config?.send_messages_webhook_url || config?.receive_messages_webhook_url || config?.instances_webhook_url || config?.chatbot_webhook_url),
-    send_messages_enabled: !!config?.send_messages_webhook_url,
-    receive_messages_enabled: !!config?.receive_messages_webhook_url,
-    instances_enabled: !!config?.instances_webhook_url,
-    chatbot_enabled: !!config?.chatbot_webhook_url
+    overall_enabled: !!(config?.webhook_url && config?.enabled),
+    webhook_configured: !!config?.webhook_url,
+    webhook_enabled: !!config?.enabled,
+    events_count: config?.events?.length || 0
   };
 
   const integrations = [
@@ -232,8 +231,8 @@ export function IntegrationsDashboard() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="n8n" className="space-y-6">
-          <SimplifiedN8nConfig />
+        <TabsContent value="unified" className="space-y-6">
+          <SimpleWebhookConfig />
         </TabsContent>
 
         <TabsContent value="webhooks" className="space-y-6">
