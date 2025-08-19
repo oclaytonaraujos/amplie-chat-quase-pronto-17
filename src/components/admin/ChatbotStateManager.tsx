@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Trash2, RefreshCw, Search, User, Clock } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface ChatbotState {
   id: string;
@@ -190,8 +191,7 @@ export function ChatbotStateManager() {
         <div className="space-y-3">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-500 mt-2">Carregando estados...</p>
+              <SyncLoaderSection text="Carregando estados..." />
             </div>
           ) : states.length === 0 ? (
             <div className="text-center py-8">

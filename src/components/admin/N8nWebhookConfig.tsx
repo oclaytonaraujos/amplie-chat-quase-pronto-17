@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Save, TestTube, ExternalLink } from 'lucide-react';
+import { SyncLoaderSection, SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface N8nWebhookConfig {
   id?: string;
@@ -178,9 +179,7 @@ export function N8nWebhookConfig() {
           <CardDescription>Carregando configurações...</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
+          <SyncLoaderSection text="Carregando configurações N8N..." />
         </CardContent>
       </Card>
     );
@@ -235,7 +234,7 @@ export function N8nWebhookConfig() {
                   disabled={testing === 'envio'}
                 >
                   {testing === 'envio' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <SyncLoaderInline />
                   ) : (
                     <TestTube className="h-4 w-4" />
                   )}
@@ -264,7 +263,7 @@ export function N8nWebhookConfig() {
                   disabled={testing === 'recebimento'}
                 >
                   {testing === 'recebimento' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <SyncLoaderInline />
                   ) : (
                     <TestTube className="h-4 w-4" />
                   )}
@@ -293,7 +292,7 @@ export function N8nWebhookConfig() {
                   disabled={testing === 'configuracao'}
                 >
                   {testing === 'configuracao' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <SyncLoaderInline />
                   ) : (
                     <TestTube className="h-4 w-4" />
                   )}
@@ -322,7 +321,7 @@ export function N8nWebhookConfig() {
                   disabled={testing === 'boot'}
                 >
                   {testing === 'boot' ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <SyncLoaderInline />
                   ) : (
                     <TestTube className="h-4 w-4" />
                   )}
@@ -349,7 +348,7 @@ export function N8nWebhookConfig() {
               disabled={saving}
             >
               {saving ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                <SyncLoaderInline />
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}

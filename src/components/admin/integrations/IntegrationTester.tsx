@@ -18,6 +18,7 @@ import {
   Play
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface TestHistory {
   id: string;
@@ -312,7 +313,7 @@ export default function IntegrationTester({ integrations }: IntegrationTesterPro
                   >
                     {isLoading ? (
                       <>
-                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                        <SyncLoaderInline />
                         Enviando...
                       </>
                     ) : (

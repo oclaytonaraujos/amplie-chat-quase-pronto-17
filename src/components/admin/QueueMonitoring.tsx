@@ -6,6 +6,7 @@ import { AlertCircle, CheckCircle, Clock, RefreshCw, Activity, Circle } from 'lu
 import { supabase } from '@/integrations/supabase/client';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { usePresence } from '@/contexts/PresenceContext';
+import { SyncLoaderSection, SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface QueueStats {
   status: string;
@@ -156,10 +157,7 @@ export default function QueueMonitoring() {
           <CardTitle>Monitoramento da Fila de Mensagens</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-center p-8">
-            <Activity className="h-8 w-8 animate-spin text-blue-500" />
-            <span className="ml-2">Carregando estatísticas...</span>
-          </div>
+          <SyncLoaderSection text="Carregando estatísticas..." />
         </CardContent>
       </Card>
     );
@@ -194,7 +192,7 @@ export default function QueueMonitoring() {
           >
             {triggeringProcessor ? (
               <>
-                <Activity className="h-4 w-4 mr-2 animate-spin" />
+                <SyncLoaderInline />
                 Executando...
               </>
             ) : (

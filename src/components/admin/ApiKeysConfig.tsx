@@ -26,6 +26,7 @@ import {
   Building2,
   BarChart3
 } from 'lucide-react';
+import { SyncLoaderSection, SyncLoaderInline } from '@/components/ui/sync-loader';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -290,10 +291,9 @@ export default function ApiKeysConfig() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Card className="animate-pulse">
+        <Card>
           <CardContent className="p-6">
-            <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-            <div className="h-8 bg-muted rounded w-1/2"></div>
+            <SyncLoaderSection text="Carregando configurações de API..." />
           </CardContent>
         </Card>
       </div>

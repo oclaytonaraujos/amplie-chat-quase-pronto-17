@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 import { 
   BarChart, 
   Bar, 
@@ -151,10 +152,7 @@ export function ChatbotAnalytics() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando analytics...</p>
-        </div>
+        <SyncLoaderSection text="Carregando analytics..." />
       </div>
     );
   }
