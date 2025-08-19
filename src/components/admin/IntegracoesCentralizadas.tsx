@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MessageSquare, Settings, Webhook, Activity } from 'lucide-react';
 import { WebhooksCentralizados } from './WebhooksCentralizados';
-import IntegracaoSimples from './IntegracaoSimples';
+import { IntegrationsDashboard } from './IntegrationsDashboard';
 import { InstanciasWhatsAppAdmin } from './InstanciasWhatsAppAdmin';
 import { N8nIntegrationManager } from './N8nIntegrationManager';
 import { useRealData } from '@/hooks/useRealData';
@@ -29,10 +29,10 @@ export default function IntegracoesCentralizadas() {
       </div>
 
       <Tabs defaultValue="simples" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="simples" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
-            Configuração Simples
+            Configuração N8N
           </TabsTrigger>
           <TabsTrigger value="instancias" className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4" />
@@ -44,7 +44,7 @@ export default function IntegracoesCentralizadas() {
           </TabsTrigger>
           <TabsTrigger value="n8n" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
-            n8n
+            Avançado N8N
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
@@ -53,7 +53,7 @@ export default function IntegracoesCentralizadas() {
         </TabsList>
 
       <TabsContent value="simples">
-        <IntegracaoSimples />
+        <IntegrationsDashboard />
       </TabsContent>
 
       <TabsContent value="instancias">
