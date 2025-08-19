@@ -1742,104 +1742,93 @@ export type Database = {
       n8n_configurations: {
         Row: {
           api_key: string | null
-          created_at: string | null
+          created_at: string
           empresa_id: string
           id: string
           instance_url: string
           last_ping: string | null
           settings: Json | null
-          status: string | null
+          status: string
           success_rate: number | null
           total_executions: number | null
-          updated_at: string | null
+          updated_at: string
           webhook_receive_url: string | null
           webhook_send_url: string | null
           workflow_count: number | null
         }
         Insert: {
           api_key?: string | null
-          created_at?: string | null
+          created_at?: string
           empresa_id: string
           id?: string
-          instance_url: string
+          instance_url?: string
           last_ping?: string | null
           settings?: Json | null
-          status?: string | null
+          status?: string
           success_rate?: number | null
           total_executions?: number | null
-          updated_at?: string | null
+          updated_at?: string
           webhook_receive_url?: string | null
           webhook_send_url?: string | null
           workflow_count?: number | null
         }
         Update: {
           api_key?: string | null
-          created_at?: string | null
+          created_at?: string
           empresa_id?: string
           id?: string
           instance_url?: string
           last_ping?: string | null
           settings?: Json | null
-          status?: string | null
+          status?: string
           success_rate?: number | null
           total_executions?: number | null
-          updated_at?: string | null
+          updated_at?: string
           webhook_receive_url?: string | null
           webhook_send_url?: string | null
           workflow_count?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "n8n_configurations_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       n8n_execution_logs: {
         Row: {
           config_id: string
-          created_at: string | null
+          created_at: string
           duration_ms: number | null
-          end_time: string | null
           error_message: string | null
-          execution_id: string
+          event_type: string | null
+          execution_id: string | null
           id: string
           input_data: Json | null
           output_data: Json | null
-          start_time: string
           status: string
-          workflow_id: string
+          workflow_id: string | null
         }
         Insert: {
           config_id: string
-          created_at?: string | null
+          created_at?: string
           duration_ms?: number | null
-          end_time?: string | null
           error_message?: string | null
-          execution_id: string
+          event_type?: string | null
+          execution_id?: string | null
           id?: string
           input_data?: Json | null
           output_data?: Json | null
-          start_time: string
           status: string
-          workflow_id: string
+          workflow_id?: string | null
         }
         Update: {
           config_id?: string
-          created_at?: string | null
+          created_at?: string
           duration_ms?: number | null
-          end_time?: string | null
           error_message?: string | null
-          execution_id?: string
+          event_type?: string | null
+          execution_id?: string | null
           id?: string
           input_data?: Json | null
           output_data?: Json | null
-          start_time?: string
           status?: string
-          workflow_id?: string
+          workflow_id?: string | null
         }
         Relationships: [
           {

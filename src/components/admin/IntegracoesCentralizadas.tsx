@@ -4,6 +4,7 @@ import { MessageSquare, Settings, Webhook, Activity } from 'lucide-react';
 import { WebhooksCentralizados } from './WebhooksCentralizados';
 import IntegracaoSimples from './IntegracaoSimples';
 import { InstanciasWhatsAppAdmin } from './InstanciasWhatsAppAdmin';
+import { N8nIntegrationManager } from './N8nIntegrationManager';
 import { useRealData } from '@/hooks/useRealData';
 
 export default function IntegracoesCentralizadas() {
@@ -28,7 +29,7 @@ export default function IntegracoesCentralizadas() {
       </div>
 
       <Tabs defaultValue="simples" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="simples" className="flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Configuração Simples
@@ -40,6 +41,10 @@ export default function IntegracoesCentralizadas() {
           <TabsTrigger value="webhooks" className="flex items-center gap-2">
             <Webhook className="w-4 h-4" />
             Webhooks
+          </TabsTrigger>
+          <TabsTrigger value="n8n" className="flex items-center gap-2">
+            <Activity className="w-4 h-4" />
+            n8n
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="flex items-center gap-2">
             <Activity className="w-4 h-4" />
@@ -63,6 +68,10 @@ export default function IntegracoesCentralizadas() {
 
       <TabsContent value="webhooks">
         <WebhooksCentralizados />
+      </TabsContent>
+
+      <TabsContent value="n8n">
+        <N8nIntegrationManager />
       </TabsContent>
 
       <TabsContent value="monitoring">

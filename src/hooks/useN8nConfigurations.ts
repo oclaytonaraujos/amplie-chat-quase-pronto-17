@@ -5,8 +5,33 @@ import { useToast } from '@/hooks/use-toast';
 import { N8nConfiguration, WebhookEventKey, N8nStats } from '@/types/n8n-webhooks';
 import type { Database } from '@/integrations/supabase/types';
 
-type N8nConfigRow = Database['public']['Tables']['n8n_configurations']['Row'];
-type N8nConfigInsert = Database['public']['Tables']['n8n_configurations']['Insert'];
+type N8nConfigRow = {
+  id: string;
+  empresa_id: string;
+  instance_url: string;
+  api_key?: string;
+  webhook_receive_url?: string;
+  webhook_send_url?: string;
+  status: 'active' | 'inactive' | 'error';
+  settings?: any;
+  last_ping?: string;
+  workflow_count?: number;
+  total_executions?: number;
+  success_rate?: number;
+  created_at: string;
+  updated_at: string;
+};
+
+type N8nConfigInsert = {
+  id?: string;
+  empresa_id: string;
+  instance_url?: string;
+  api_key?: string;
+  webhook_receive_url?: string;
+  webhook_send_url?: string;
+  status?: 'active' | 'inactive' | 'error';
+  settings?: any;
+};
 
 export function useN8nConfigurations() {
   const [configurations, setConfigurations] = useState<N8nConfigRow[]>([]);
@@ -29,7 +54,7 @@ export function useN8nConfigurations() {
 
       if (fetchError) throw fetchError;
 
-      setConfigurations(data || []);
+      setConfigurations((data || []) as N8nConfigRow[]);
     } catch (err: any) {
       console.error('Erro ao buscar configurações n8n:', err);
       setError(err.message);
@@ -53,10 +78,11 @@ export function useN8nConfigurations() {
         throw new Error('Empresa não encontrada para o usuário');
       }
 
-      const configToSave: N8nConfigInsert = {
+      const configToSave = {
         ...config,
         empresa_id: profile.empresa_id,
         instance_url: config.instance_url || 'https://app.n8n.cloud',
+        status: 'active' as const
       };
 
       const { data, error: saveError } = await supabase
