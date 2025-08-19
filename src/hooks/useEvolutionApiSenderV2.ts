@@ -99,17 +99,6 @@ export function useEvolutionApiSenderV2() {
         case 'texto':
           // Fallback para modo direto sem EventsService
           return await directSender.sendMessage(params);
-            instance.nome,
-            params.telefone,
-            params.mensagem,
-            {
-              conversaId: params.conversaId,
-              delay: 0,
-              linkPreview: true,
-              idempotencyKey
-            }
-          );
-          break;
 
         case 'imagem':
         case 'audio':
@@ -120,23 +109,8 @@ export function useEvolutionApiSenderV2() {
             throw new Error('URL da mídia é obrigatória');
           }
 
-          const mediaUrl = params.opcoes.imageUrl || params.opcoes.audioUrl || 
-                          params.opcoes.videoUrl || params.opcoes.documentUrl!;
-
           // Fallback para modo direto
           return await directSender.sendMessage(params);
-            instance.nome,
-            params.telefone,
-            mediaUrl,
-            params.tipo as 'imagem' | 'audio' | 'video' | 'documento',
-            {
-              conversaId: params.conversaId,
-              caption: params.opcoes.caption,
-              fileName: params.opcoes.fileName,
-              idempotencyKey
-            }
-          );
-          break;
 
         case 'botoes':
           if (!params.opcoes?.botoes || params.opcoes.botoes.length === 0) {
@@ -145,16 +119,6 @@ export function useEvolutionApiSenderV2() {
 
           // Fallback para modo direto
           return await directSender.sendMessage(params);
-            instance.nome,
-            params.telefone,
-            params.mensagem,
-            params.opcoes.botoes,
-            {
-              conversaId: params.conversaId,
-              idempotencyKey
-            }
-          );
-          break;
 
         case 'lista':
           if (!params.opcoes?.lista || params.opcoes.lista.length === 0) {
@@ -163,62 +127,10 @@ export function useEvolutionApiSenderV2() {
 
           // Fallback para modo direto
           return await directSender.sendMessage(params);
-            instance.nome,
-            params.telefone,
-            params.mensagem,
-            params.opcoes.lista,
-            {
-              conversaId: params.conversaId,
-              idempotencyKey
-            }
-          );
-          break;
 
         default:
           throw new Error(`Tipo de mensagem não suportado: ${params.tipo}`);
       }
-
-      setMessageStatus({
-        correlationId: response.correlation_id,
-        status: response.status === 'processing' ? 'queued' : 'failed'
-      });
-
-      // Subscribe to status updates
-      if (response.correlation_id) {
-        const unsubscribe = EventsService.subscribeToEvent(response.correlation_id, (event) => {
-          setMessageStatus({
-            correlationId: event.correlation_id,
-            status: event.status as MessageStatus['status'],
-            error: event.error_message
-          });
-
-          if (event.status === 'delivered') {
-            toast({
-              title: "Mensagem enviada",
-              description: "Mensagem enviada com sucesso!",
-            });
-          } else if (event.status === 'failed') {
-            toast({
-              title: "Erro no envio",
-              description: event.error_message || "Falha ao enviar mensagem",
-              variant: "destructive",
-            });
-          }
-        });
-
-        // Cleanup subscription after 5 minutes
-        setTimeout(unsubscribe, 5 * 60 * 1000);
-      }
-
-      logger.info('Mensagem enviada para fila n8n', {
-        userId: user.id,
-        metadata: {
-          correlationId: response.correlation_id,
-          conversaId: params.conversaId
-        }
-      });
-
-      return { success: true, correlationId: response.correlation_id };
 
     } catch (error) {
       logger.error('Erro ao enviar mensagem via n8n', {
