@@ -53,11 +53,11 @@ export function EnhancedKanbanBoard({
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   
   const { toast } = useToast();
-  const { conversas, loading } = useAtendimentoReal();
+  const { conversas, loading, refetch } = useAtendimentoReal();
 
   const refreshConversas = () => {
-    // Função para recarregar conversas
-    window.location.reload();
+    // Função para recarregar conversas usando refetch
+    refetch();
   };
 
   // Setup real-time updates

@@ -98,13 +98,8 @@ export function Header({
 
         {/* Right side - Actions with mobile optimization */}
         <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 shrink-0">
-          {/* Real-time Notifications */}
+          {/* Notifications */}
           <div className="touch-manipulation">
-            <ConnectionStatusBar />
-          </div>
-
-          {/* Legacy Notifications */}
-          <div className="touch-manipulation hidden">
             <NotificationDropdown />
           </div>
 
