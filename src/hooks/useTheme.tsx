@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useOptimizedAuth } from '@/contexts/OptimizedAuthProvider';
 import { useToast } from '@/hooks/use-toast';
 
 type Theme = 'light' | 'dark';
@@ -66,7 +66,7 @@ const defaultAccessibilitySettings: AccessibilitySettings = {
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user } = useOptimizedAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   
