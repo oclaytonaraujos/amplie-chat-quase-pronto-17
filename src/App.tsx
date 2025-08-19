@@ -21,7 +21,7 @@ import { useNavigationTracking } from "@/hooks/useNavigationTracking";
 // Lazy load componentes críticos - Layout NÃO lazy para manter navegação fluida
 // AdminAuthProvider NÃO deve ser lazy para evitar problemas na rota /admin
 import { AdminAuthProvider } from "@/hooks/useAdminAuth";
-const ProtectedRoute = lazy(() => import("@/components/ProtectedRoute").then(m => ({ default: m.ProtectedRoute })));
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/layout/Layout";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 
