@@ -3,7 +3,8 @@
  */
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Loader2, Wifi, WifiOff } from 'lucide-react';
+import { Wifi, WifiOff } from 'lucide-react';
+import { SyncLoader } from './sync-loader';
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg';
@@ -52,12 +53,9 @@ export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   }
 
   return (
-    <Loader2
-      className={cn(
-        'animate-spin text-primary',
-        sizeClasses[size],
-        className
-      )}
+    <SyncLoader 
+      size={size}
+      className={className}
     />
   );
 };
@@ -116,7 +114,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-8">
-      <LoadingSpinner size="lg" className="mb-4" />
+      <SyncLoader size="lg" className="mb-4" />
       <p className="text-muted-foreground text-center">
         {message || getTypeMessage()}
       </p>

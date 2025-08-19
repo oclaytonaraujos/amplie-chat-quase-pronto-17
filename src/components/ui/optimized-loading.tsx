@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
+import { SyncLoader } from './sync-loader';
 
 interface OptimizedLoadingProps {
   variant?: 'spinner' | 'skeleton' | 'dots' | 'pulse';
@@ -72,7 +72,7 @@ export const OptimizedLoading: React.FC<OptimizedLoadingProps> = ({
   // Default spinner
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
+      <SyncLoader size={size} />
       {text && <span className="text-sm text-muted-foreground">{text}</span>}
     </div>
   );
@@ -210,7 +210,7 @@ export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
         variant === 'overlay' && 'bg-background/80 backdrop-blur-sm'
       )}>
         <div className="flex flex-col items-center gap-4 p-6 bg-card rounded-lg shadow-lg border">
-          <OptimizedLoading size="lg" />
+          <SyncLoader size="lg" />
           <p className="text-sm text-muted-foreground text-center">{message}</p>
         </div>
       </div>

@@ -1,41 +1,47 @@
 import React from 'react';
+import { SyncLoader as ReactSpinnersSyncLoader } from 'react-spinners';
 import { cn } from '@/lib/utils';
 
 interface SyncLoaderProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   variant?: 'primary' | 'secondary' | 'muted';
+  color?: string;
 }
 
-const sizeClasses = {
-  sm: 'w-4 h-4',
-  md: 'w-6 h-6', 
-  lg: 'w-8 h-8',
-  xl: 'w-12 h-12'
+const sizeMap = {
+  sm: 6,
+  md: 8, 
+  lg: 12,
+  xl: 16
 };
 
-const variantClasses = {
-  primary: 'border-primary',
-  secondary: 'border-secondary-foreground',
-  muted: 'border-muted-foreground'
+const variantColors = {
+  primary: 'hsl(var(--primary))',
+  secondary: 'hsl(var(--secondary-foreground))',
+  muted: 'hsl(var(--muted-foreground))'
 };
 
 export function SyncLoader({ 
   size = 'md', 
   className,
-  variant = 'primary'
+  variant = 'primary',
+  color
 }: SyncLoaderProps) {
+  const finalColor = color || variantColors[variant];
+  
   return (
     <div 
-      className={cn(
-        'border-2 border-t-transparent rounded-full animate-spin',
-        sizeClasses[size],
-        variantClasses[variant],
-        className
-      )}
+      className={cn('flex items-center justify-center', className)}
       role="status"
       aria-label="Carregando..."
-    />
+    >
+      <ReactSpinnersSyncLoader 
+        color={finalColor}
+        size={sizeMap[size]}
+        speedMultiplier={0.7}
+      />
+    </div>
   );
 }
 
@@ -43,11 +49,12 @@ export function SyncLoader({
 export function SyncLoaderSection({ 
   size = 'lg',
   text = 'Carregando...',
-  className 
+  className,
+  variant = 'primary'
 }: SyncLoaderProps & { text?: string }) {
   return (
     <div className={cn('flex flex-col items-center justify-center p-8 space-y-4', className)}>
-      <SyncLoader size={size} />
+      <SyncLoader size={size} variant={variant} />
       <p className="text-sm text-muted-foreground">{text}</p>
     </div>
   );
@@ -56,11 +63,13 @@ export function SyncLoaderSection({
 // Componente inline para botões
 export function SyncLoaderInline({ 
   size = 'sm',
-  className 
+  className,
+  variant = 'primary'
 }: SyncLoaderProps) {
   return (
     <SyncLoader 
       size={size} 
+      variant={variant}
       className={cn('mr-2', className)} 
     />
   );
