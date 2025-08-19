@@ -1724,6 +1724,9 @@ export type Database = {
           success_rate: number | null
           total_executions: number | null
           updated_at: string
+          webhook_chatbot: string | null
+          webhook_create_connection: string | null
+          webhook_delete_instance: string | null
           webhook_receive_url: string | null
           webhook_send_url: string | null
           workflow_count: number | null
@@ -1740,6 +1743,9 @@ export type Database = {
           success_rate?: number | null
           total_executions?: number | null
           updated_at?: string
+          webhook_chatbot?: string | null
+          webhook_create_connection?: string | null
+          webhook_delete_instance?: string | null
           webhook_receive_url?: string | null
           webhook_send_url?: string | null
           workflow_count?: number | null
@@ -1756,6 +1762,9 @@ export type Database = {
           success_rate?: number | null
           total_executions?: number | null
           updated_at?: string
+          webhook_chatbot?: string | null
+          webhook_create_connection?: string | null
+          webhook_delete_instance?: string | null
           webhook_receive_url?: string | null
           webhook_send_url?: string | null
           workflow_count?: number | null
