@@ -17,7 +17,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     loading, 
     hasUser: !!user, 
     userEmail: user?.email,
-    currentPath: location.pathname 
+    currentPath: location.pathname,
+    timestamp: new Date().toISOString()
   });
 
   if (loading) {
