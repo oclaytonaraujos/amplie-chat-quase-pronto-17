@@ -322,7 +322,7 @@ const App = () => {
             <ThemeProvider>
               <ConnectionNotificationProvider>
                 <AdminAuthProvider>
-                <Suspense fallback={<FullScreenFallback />}>
+                  <Suspense fallback={<FullScreenFallback />}>
                   <TooltipProvider>
                     <Toaster />
                     <BrowserRouter>
