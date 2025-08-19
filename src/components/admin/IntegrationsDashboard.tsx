@@ -8,8 +8,16 @@ import { SimplifiedN8nConfig } from './SimplifiedN8nConfig';
 import { useSimplifiedN8n } from '@/hooks/useSimplifiedN8n';
 
 export function IntegrationsDashboard() {
-  const { status, loading } = useSimplifiedN8n();
+  const { config, loading } = useSimplifiedN8n();
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Calculate status from config
+  const status = {
+    overall_enabled: !!(config?.messages_webhook_url || config?.instances_webhook_url || config?.chatbot_webhook_url),
+    messages_enabled: !!config?.messages_webhook_url,
+    instances_enabled: !!config?.instances_webhook_url,
+    chatbot_enabled: !!config?.chatbot_webhook_url
+  };
 
   const integrations = [
     {

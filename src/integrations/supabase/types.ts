@@ -1821,6 +1821,36 @@ export type Database = {
           },
         ]
       }
+      n8n_webhook_configs: {
+        Row: {
+          chatbot_webhook_url: string | null
+          created_at: string
+          empresa_id: string
+          id: string
+          instances_webhook_url: string | null
+          messages_webhook_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          chatbot_webhook_url?: string | null
+          created_at?: string
+          empresa_id: string
+          id?: string
+          instances_webhook_url?: string | null
+          messages_webhook_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chatbot_webhook_url?: string | null
+          created_at?: string
+          empresa_id?: string
+          id?: string
+          instances_webhook_url?: string | null
+          messages_webhook_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       nlp_intents: {
         Row: {
           active: boolean | null
