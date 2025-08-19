@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useOptimizedAuth } from '@/contexts/OptimizedAuthProvider';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
@@ -9,7 +10,15 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, loading } = useAuth();
+  // Tentar usar o auth otimizado primeiro, fallback para o padrão
+  let authHook;
+  try {
+    authHook = useOptimizedAuth();
+  } catch {
+    authHook = useAuth();
+  }
+  
+  const { user, loading, isOfflineMode } = authHook;
   const location = useLocation();
 
   if (loading) {
@@ -23,8 +32,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!user) {
+  // Em modo offline, permitir acesso sem autenticação no desenvolvimento
+  if (!user && !isOfflineMode) {
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
+
   return <>{children}</>;
 };

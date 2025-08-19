@@ -41,71 +41,21 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { user, profile, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    console.log('useAdminAuth: verificando autenticação admin');
-    
     // Se ainda está carregando a autenticação principal, aguardar
     if (authLoading) {
       return;
     }
 
-    // PRIMEIRA VERIFICAÇÃO: Se usuário está logado como super_admin no sistema principal
+    // VERIFICAÇÃO ÚNICA: Se usuário está logado como super_admin no sistema principal
     if (user && profile && profile.cargo === 'super_admin') {
-      console.log('useAdminAuth: usuário logado como super_admin - autenticação automática');
       setIsAdminAuthenticated(true);
       setLoading(false);
       return;
     }
     
-    // SEGUNDA VERIFICAÇÃO: Sessão admin específica no localStorage
-    const ADMIN_TOKEN_KEY = 'secure_admin_session';
-    const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 horas
-    
-    try {
-      const adminSession = localStorage.getItem(ADMIN_TOKEN_KEY);
-      
-      if (adminSession) {
-        const sessionData = JSON.parse(adminSession);
-        const currentTime = Date.now();
-        
-        // Verificar se o token não expirou e tem estrutura válida
-        if (sessionData.expiresAt && currentTime < sessionData.expiresAt && sessionData.hash) {
-          console.log('useAdminAuth: admin ainda autenticado via sessão específica');
-          setIsAdminAuthenticated(true);
-        } else {
-          console.log('useAdminAuth: sessão admin expirada ou inválida');
-          localStorage.removeItem(ADMIN_TOKEN_KEY);
-          setIsAdminAuthenticated(false);
-        }
-      } else {
-        // Verificar se existe auth antiga no sessionStorage e migrar
-        const oldAdminAuth = sessionStorage.getItem('admin_authenticated');
-        const oldAdminAuthTime = sessionStorage.getItem('admin_auth_time');
-        
-        if (oldAdminAuth === 'true' && oldAdminAuthTime) {
-          const authTime = parseInt(oldAdminAuthTime);
-          const currentTime = Date.now();
-          
-          if (currentTime - authTime < SESSION_DURATION) {
-            console.log('useAdminAuth: migrando sessão antiga');
-            setIsAdminAuthenticated(true);
-          }
-          
-          // Limpar dados antigos
-          sessionStorage.removeItem('admin_authenticated');
-          sessionStorage.removeItem('admin_auth_time');
-        } else {
-          console.log('useAdminAuth: admin não autenticado');
-          setIsAdminAuthenticated(false);
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao verificar sessão admin:', error);
-      localStorage.removeItem(ADMIN_TOKEN_KEY);
-      setIsAdminAuthenticated(false);
-    }
-    
+    // Qualquer outro caso, não é admin
+    setIsAdminAuthenticated(false);
     setLoading(false);
-    console.log('useAdminAuth: loading definido para false');
   }, [user, profile, authLoading]);
 
   const executeOperation = useCallback(async (

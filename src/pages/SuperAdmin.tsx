@@ -1,12 +1,9 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Navigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
-import { useUserRole } from '@/hooks/useUserRole';
-import { AdminLogin } from '@/components/admin/AdminLogin';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { ErrorBoundaryAdmin } from '@/components/admin/ErrorBoundaryAdmin';
 
@@ -20,31 +17,21 @@ import ConfiguracoesAvancadas from '@/components/admin/ConfiguracoesAvancadas';
 import QueueMonitoring from '@/components/admin/QueueMonitoring';
 
 export default function SuperAdmin() {
-  const {
-    user,
-    loading: authLoading
-  } = useAuth();
-  const {
-    isSuperAdmin,
-    loading: roleLoading
-  } = useUserRole();
-  const {
-    isAdminAuthenticated,
-    loading: adminAuthLoading
-  } = useAdminAuth();
-  if (authLoading || roleLoading || adminAuthLoading) {
-    return <div className="min-h-screen flex items-center justify-center">
+  const { user, profile, loading: authLoading, isSuperAdmin } = useAuth();
+  
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-muted-foreground">Verificando permissões...</p>
         </div>
-      </div>;
+      </div>
+    );
   }
-  if (!user || !isSuperAdmin) {
+
+  if (!user || !profile || !isSuperAdmin) {
     return <Navigate to="/painel" replace />;
-  }
-  if (!isAdminAuthenticated) {
-    return <AdminLogin />;
   }
   return <AdminLayout title="Super Admin" description="Gerencie todas as empresas e configurações da plataforma">
       <ErrorBoundaryAdmin>
