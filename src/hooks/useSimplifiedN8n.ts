@@ -56,6 +56,11 @@ export function useSimplifiedN8n() {
     return SimplifiedN8nService.sendMessage(messageData, profile.empresa_id);
   };
 
+  const receiveMessage = async (messageData: any) => {
+    if (!profile?.empresa_id) throw new Error('Usuário não autenticado');
+    return SimplifiedN8nService.receiveMessage(messageData, profile.empresa_id);
+  };
+
   const sendInstanceOperation = async (instanceData: any) => {
     if (!profile?.empresa_id) throw new Error('Usuário não autenticado');
     return SimplifiedN8nService.sendInstanceOperation(instanceData, profile.empresa_id);
@@ -76,6 +81,7 @@ export function useSimplifiedN8n() {
     updateWebhook,
     testWebhook,
     sendMessage,
+    receiveMessage,
     sendInstanceOperation,
     sendChatbotOperation,
     reload: loadConfig

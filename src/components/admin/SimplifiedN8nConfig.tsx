@@ -14,7 +14,8 @@ export function SimplifiedN8nConfig() {
   const { config, updateWebhook, testWebhook, loading } = useSimplifiedN8n();
   
   const [webhooks, setWebhooks] = useState({
-    messages: config?.messages_webhook_url || '',
+    send_messages: config?.send_messages_webhook_url || '',
+    receive_messages: config?.receive_messages_webhook_url || '',
     instances: config?.instances_webhook_url || '',
     chatbot: config?.chatbot_webhook_url || ''
   });
@@ -62,11 +63,15 @@ export function SimplifiedN8nConfig() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="messages" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="messages">
+          <Tabs defaultValue="send_messages" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="send_messages">
                 <MessageSquare className="h-4 w-4 mr-1" />
-                Mensagens
+                Envio
+              </TabsTrigger>
+              <TabsTrigger value="receive_messages">
+                <MessageSquare className="h-4 w-4 mr-1" />
+                Recebimento
               </TabsTrigger>
               <TabsTrigger value="instances">
                 <Webhook className="h-4 w-4 mr-1" />
@@ -78,27 +83,60 @@ export function SimplifiedN8nConfig() {
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="messages" className="space-y-4">
+            <TabsContent value="send_messages" className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="messages-webhook">Webhook de Mensagens</Label>
+                <Label htmlFor="send-messages-webhook">Webhook para Envio de Mensagens</Label>
                 <Input
-                  id="messages-webhook"
-                  placeholder="https://n8n.exemplo.com/webhook/messages"
-                  value={webhooks.messages}
-                  onChange={(e) => setWebhooks(prev => ({ ...prev, messages: e.target.value }))}
+                  id="send-messages-webhook"
+                  placeholder="https://n8n.exemplo.com/webhook/send-messages"
+                  value={webhooks.send_messages}
+                  onChange={(e) => setWebhooks(prev => ({ ...prev, send_messages: e.target.value }))}
                 />
+                <p className="text-xs text-muted-foreground">
+                  Processa solicitações de envio de mensagens WhatsApp
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => handleSaveWebhook('messages')}
-                  disabled={loading || !webhooks.messages}
+                  onClick={() => handleSaveWebhook('send_messages')}
+                  disabled={loading || !webhooks.send_messages}
                 >
                   Salvar
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleTestWebhook('messages')}
-                  disabled={loading || !webhooks.messages}
+                  onClick={() => handleTestWebhook('send_messages')}
+                  disabled={loading || !webhooks.send_messages}
+                >
+                  Testar
+                </Button>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="receive_messages" className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="receive-messages-webhook">Webhook para Recebimento de Mensagens</Label>
+                <Input
+                  id="receive-messages-webhook"
+                  placeholder="https://n8n.exemplo.com/webhook/receive-messages"
+                  value={webhooks.receive_messages}
+                  onChange={(e) => setWebhooks(prev => ({ ...prev, receive_messages: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Processa mensagens recebidas do WhatsApp
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => handleSaveWebhook('receive_messages')}
+                  disabled={loading || !webhooks.receive_messages}
+                >
+                  Salvar
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleTestWebhook('receive_messages')}
+                  disabled={loading || !webhooks.receive_messages}
                 >
                   Testar
                 </Button>
@@ -167,14 +205,23 @@ export function SimplifiedN8nConfig() {
           <CardTitle>Status dos Webhooks</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
-                <span className="text-sm font-medium">Mensagens</span>
+                <span className="text-sm font-medium">Envio</span>
               </div>
-              <Badge variant={webhooks.messages ? "default" : "secondary"}>
-                {webhooks.messages ? "Configurado" : "Pendente"}
+              <Badge variant={webhooks.send_messages ? "default" : "secondary"}>
+                {webhooks.send_messages ? "Configurado" : "Pendente"}
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                <span className="text-sm font-medium">Recebimento</span>
+              </div>
+              <Badge variant={webhooks.receive_messages ? "default" : "secondary"}>
+                {webhooks.receive_messages ? "Configurado" : "Pendente"}
               </Badge>
             </div>
             <div className="flex items-center justify-between p-3 border rounded-lg">

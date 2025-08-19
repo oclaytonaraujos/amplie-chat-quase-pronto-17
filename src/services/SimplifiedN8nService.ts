@@ -1,10 +1,11 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export type WebhookType = 'messages' | 'instances' | 'chatbot';
+export type WebhookType = 'send_messages' | 'receive_messages' | 'instances' | 'chatbot';
 
 export interface N8nWebhookConfig {
   id?: string;
-  messages_webhook_url?: string;
+  send_messages_webhook_url?: string;
+  receive_messages_webhook_url?: string;
   instances_webhook_url?: string;
   chatbot_webhook_url?: string;
   empresa_id: string;
@@ -92,8 +93,13 @@ export class SimplifiedN8nService {
     }
   }
 
+  // Métodos específicos para cada tipo de webhook
   static async sendMessage(data: any, empresaId: string) {
-    return this.sendToN8n('messages', data, empresaId);
+    return this.sendToN8n('send_messages', data, empresaId);
+  }
+
+  static async receiveMessage(data: any, empresaId: string) {
+    return this.sendToN8n('receive_messages', data, empresaId);
   }
 
   static async sendInstanceOperation(data: any, empresaId: string) {
@@ -108,8 +114,10 @@ export class SimplifiedN8nService {
     if (!config) return null;
     
     switch (type) {
-      case 'messages':
-        return config.messages_webhook_url || null;
+      case 'send_messages':
+        return config.send_messages_webhook_url || null;
+      case 'receive_messages':
+        return config.receive_messages_webhook_url || null;
       case 'instances':
         return config.instances_webhook_url || null;
       case 'chatbot':

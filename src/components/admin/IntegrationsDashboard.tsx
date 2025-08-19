@@ -13,8 +13,9 @@ export function IntegrationsDashboard() {
 
   // Calculate status from config
   const status = {
-    overall_enabled: !!(config?.messages_webhook_url || config?.instances_webhook_url || config?.chatbot_webhook_url),
-    messages_enabled: !!config?.messages_webhook_url,
+    overall_enabled: !!(config?.send_messages_webhook_url || config?.receive_messages_webhook_url || config?.instances_webhook_url || config?.chatbot_webhook_url),
+    send_messages_enabled: !!config?.send_messages_webhook_url,
+    receive_messages_enabled: !!config?.receive_messages_webhook_url,
     instances_enabled: !!config?.instances_webhook_url,
     chatbot_enabled: !!config?.chatbot_webhook_url
   };
@@ -27,9 +28,9 @@ export function IntegrationsDashboard() {
       icon: Server,
       status: status.overall_enabled ? 'active' : 'inactive',
       components: [
-        { name: 'Mensagens', enabled: status.messages_enabled },
-        { name: 'Instâncias', enabled: status.instances_enabled },
-        { name: 'Chatbot', enabled: status.chatbot_enabled }
+        { name: 'Envio', enabled: status.send_messages_enabled },
+        { name: 'Recebimento', enabled: status.receive_messages_enabled },
+        { name: 'Instâncias', enabled: status.instances_enabled }
       ]
     },
     {
@@ -112,7 +113,7 @@ export function IntegrationsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {[status.messages_enabled, status.instances_enabled, status.chatbot_enabled].filter(Boolean).length}/3
+                  {[status.send_messages_enabled, status.receive_messages_enabled, status.instances_enabled, status.chatbot_enabled].filter(Boolean).length}/4
                 </div>
                 <p className="text-xs text-muted-foreground">
                   Webhooks configurados
@@ -245,9 +246,16 @@ export function IntegrationsDashboard() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <h4 className="font-medium">Webhook de Mensagens</h4>
-                <Badge variant={status.messages_enabled ? "default" : "secondary"}>
-                  {status.messages_enabled ? 'Configurado' : 'Não configurado'}
+                <h4 className="font-medium">Webhook para Envio</h4>
+                <Badge variant={status.send_messages_enabled ? "default" : "secondary"}>
+                  {status.send_messages_enabled ? 'Configurado' : 'Não configurado'}
+                </Badge>
+              </div>
+              
+              <div className="space-y-2">
+                <h4 className="font-medium">Webhook para Recebimento</h4>
+                <Badge variant={status.receive_messages_enabled ? "default" : "secondary"}>
+                  {status.receive_messages_enabled ? 'Configurado' : 'Não configurado'}
                 </Badge>
               </div>
               
