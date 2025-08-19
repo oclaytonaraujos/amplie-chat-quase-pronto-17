@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { lazy, Suspense, useEffect, startTransition } from "react";
+import React, { lazy, Suspense, useEffect, startTransition } from "react";
 import { SyncLoader } from '@/components/ui/sync-loader';
 
 // Core providers otimizados - reduzido de 14 para 6
