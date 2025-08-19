@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface AdminAuthContextType {
   isAdminAuthenticated: boolean;
@@ -37,11 +38,25 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user, profile, loading: authLoading } = useAuth();
 
   useEffect(() => {
     console.log('useAdminAuth: verificando autenticação admin');
     
-    // SEGURANÇA: Migrar de sessionStorage para localStorage com token seguro
+    // Se ainda está carregando a autenticação principal, aguardar
+    if (authLoading) {
+      return;
+    }
+
+    // PRIMEIRA VERIFICAÇÃO: Se usuário está logado como super_admin no sistema principal
+    if (user && profile && profile.cargo === 'super_admin') {
+      console.log('useAdminAuth: usuário logado como super_admin - autenticação automática');
+      setIsAdminAuthenticated(true);
+      setLoading(false);
+      return;
+    }
+    
+    // SEGUNDA VERIFICAÇÃO: Sessão admin específica no localStorage
     const ADMIN_TOKEN_KEY = 'secure_admin_session';
     const SESSION_DURATION = 2 * 60 * 60 * 1000; // 2 horas
     
@@ -54,7 +69,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         
         // Verificar se o token não expirou e tem estrutura válida
         if (sessionData.expiresAt && currentTime < sessionData.expiresAt && sessionData.hash) {
-          console.log('useAdminAuth: admin ainda autenticado');
+          console.log('useAdminAuth: admin ainda autenticado via sessão específica');
           setIsAdminAuthenticated(true);
         } else {
           console.log('useAdminAuth: sessão admin expirada ou inválida');
@@ -91,7 +106,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     setLoading(false);
     console.log('useAdminAuth: loading definido para false');
-  }, []);
+  }, [user, profile, authLoading]);
 
   const executeOperation = useCallback(async (
     operation: () => Promise<any>,
