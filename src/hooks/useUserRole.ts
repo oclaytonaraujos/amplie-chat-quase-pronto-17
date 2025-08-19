@@ -22,6 +22,19 @@ export function useUserRole() {
       }
 
       try {
+        // Use the non-recursive is_user_super_admin function
+        const { data: isSuperAdmin, error: superAdminError } = await supabase
+          .rpc('is_user_super_admin');
+
+        if (superAdminError) {
+          console.error('Erro ao verificar super admin:', superAdminError);
+        } else if (isSuperAdmin) {
+          setRole('super_admin');
+          setLoading(false);
+          return;
+        }
+
+        // If not super admin, try to get role directly
         const { data, error } = await supabase
           .from('profiles')
           .select('cargo')

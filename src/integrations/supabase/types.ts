@@ -3352,6 +3352,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      current_user_empresa_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       decrement_setor_atendimentos: {
         Args: { setor_id: string }
         Returns: undefined
