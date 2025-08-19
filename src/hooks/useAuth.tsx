@@ -1,6 +1,12 @@
 
-// Hook unificado que funciona com qualquer provider
-export { useUnifiedAuth as useAuth } from './useUnifiedAuth';
+import { useOptimizedAuth } from '@/contexts/OptimizedAuthProvider';
 
-// Re-export do provider para compatibilidade
+/**
+ * Hook de autenticação unificado e otimizado
+ */
+export function useAuth() {
+  return useOptimizedAuth();
+}
+
+// Re-export do provider
 export { OptimizedAuthProvider as AuthProvider } from '@/contexts/OptimizedAuthProvider';

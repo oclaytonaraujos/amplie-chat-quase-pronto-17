@@ -61,7 +61,7 @@ serve(async (req) => {
           
           updateData.status = 'connecting'
           updateData.connection_state = 'CONNECTING'
-          console.log('QR Code atualizado para instância:', payload.instance)
+          await logger.info('QR Code updated', payload.instance, 'qr_update')
           
         } else if (payload.event === 'CONNECTION_UPDATE') {
           const state = payload.data?.state || payload.data?.connection || 'DISCONNECTED'
