@@ -11,6 +11,7 @@ import { useChatInternoNotifications } from '@/hooks/useChatInternoNotifications
 import { Usuario, Conversa, Mensagem, ConversaInterna, MensagemInterna } from '@/types/chat-interno';
 import { ChatInternoTransferService } from '@/services/chatInternoTransfer';
 import { useAuth } from '@/hooks/useAuth';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 
 export default function ChatInterno() {
@@ -206,12 +207,7 @@ export default function ChatInterno() {
       {/* Área principal do chat */}
       <div className={`flex-1 flex flex-col min-w-0 ${isMobile && sidebarOpen ? 'hidden' : ''}`}>
         {loading ? (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-              <p className="text-muted-foreground">Carregando chat interno...</p>
-            </div>
-          </div>
+          <SyncLoaderSection text="Carregando chat interno..." className="flex-1" />
         ) : (
           <ChatArea
             conversa={conversaSelecionada}

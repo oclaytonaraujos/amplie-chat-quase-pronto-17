@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckIcon, Clock, AlertTriangle, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface MessageStatusIndicatorProps {
   status: 'enviando' | 'enviado' | 'entregue' | 'lido' | 'erro';
@@ -93,7 +94,7 @@ export function MessageRetryButton({ onRetry, isRetrying = false, className }: M
       )}
       title="Tentar novamente"
     >
-      <RotateCcw className={cn("w-3 h-3", isRetrying && "animate-spin")} />
+      {isRetrying ? <SyncLoaderInline size="sm" variant="muted" /> : <RotateCcw className="w-3 h-3" />}
       <span>Tentar novamente</span>
     </button>
   );

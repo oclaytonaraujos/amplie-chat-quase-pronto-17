@@ -9,6 +9,7 @@ import { SetorCard } from '@/components/setores/SetorCard';
 import { StatsCard } from '@/components/setores/StatsCard';
 import { EmptyState } from '@/components/setores/EmptyState';
 import { type SetorData } from '@/services/setoresService';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 export default function Setores() {
   const [searchTerm, setSearchTerm] = useState('');
   const [setorParaEditar, setSetorParaEditar] = useState<SetorData | null>(null);
@@ -20,12 +21,11 @@ export default function Setores() {
   } = useSetoresQuery();
   const filteredSetores = setores.filter(setor => setor.nome.toLowerCase().includes(searchTerm.toLowerCase()) || setor.descricao && setor.descricao.toLowerCase().includes(searchTerm.toLowerCase()));
   if (isLoading) {
-    return <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando setores...</p>
-        </div>
-      </div>;
+    return (
+      <div className="p-6 min-h-[400px]">
+        <SyncLoaderSection text="Carregando setores..." />
+      </div>
+    );
   }
   if (error) {
     return <div className="p-6 flex items-center justify-center min-h-[400px]">

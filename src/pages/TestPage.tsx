@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { Link } from 'react-router-dom';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 export default function TestPage() {
   const { user, profile, loading: authLoading } = useAuth();
@@ -11,8 +12,8 @@ export default function TestPage() {
 
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Carregando dados de teste...</p>
+      <div className="min-h-screen">
+        <SyncLoaderSection text="Carregando dados de teste..." />
       </div>
     );
   }

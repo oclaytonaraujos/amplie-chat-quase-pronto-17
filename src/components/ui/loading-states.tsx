@@ -4,6 +4,7 @@
 import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import { SyncLoader } from './sync-loader';
 
 const loadingVariants = cva(
   "inline-flex items-center justify-center",
@@ -109,10 +110,10 @@ export function Loading({
     );
   }
 
-  // Default spinner
+  // Default spinner - usar SyncLoader padronizado
   return (
     <div className={cn("flex items-center justify-center", fullScreen && "fixed inset-0 bg-background/80 backdrop-blur-sm z-50", className)} {...props}>
-      <div className={cn(loadingVariants({ variant, size }))} />
+      <SyncLoader size={size} />
       {text && <span className="ml-3 text-muted-foreground">{text}</span>}
     </div>
   );
@@ -169,17 +170,15 @@ export function SkeletonTable({ rows = 5, cols = 4, className, ...props }: { row
 // Loading screen overlay
 export function LoadingScreen({ 
   title = "Carregando...", 
-  subtitle,
-  variant = "spinner" 
+  subtitle
 }: { 
   title?: string; 
   subtitle?: string; 
-  variant?: "spinner" | "dots" | "wave" 
 }) {
   return (
     <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-50 flex items-center justify-center">
       <div className="text-center space-y-4">
-        <Loading variant={variant} size="xl" />
+        <SyncLoader size="xl" />
         <div className="space-y-2">
           <h2 className="text-lg font-semibold">{title}</h2>
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}

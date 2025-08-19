@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Users, MessageSquare, Smartphone } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface Estatisticas {
   totalEmpresas: number;
@@ -87,7 +88,7 @@ export default function RelatoriosEstatisticasCard() {
           <CardTitle>Estatísticas da Plataforma</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center">Carregando estatísticas...</div>
+          <SyncLoaderSection text="Carregando estatísticas..." />
         </CardContent>
       </Card>
     );

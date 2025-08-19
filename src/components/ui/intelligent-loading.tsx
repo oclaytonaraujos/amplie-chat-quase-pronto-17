@@ -3,7 +3,8 @@
  */
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { LoadingSpinner, LoadingState } from './enhanced-loading';
+import { LoadingState } from './enhanced-loading';
+import { SyncLoader } from './sync-loader';
 
 interface IntelligentLoadingProps {
   isLoading: boolean;
@@ -208,7 +209,7 @@ export const ProgressiveLoading: React.FC<ProgressiveLoadingProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-center p-8">
-      <LoadingSpinner size="lg" className="mb-4" />
+      <SyncLoader size="lg" className="mb-4" />
       <p className="text-muted-foreground text-center mb-4">
         {phases[currentPhase].label}
       </p>

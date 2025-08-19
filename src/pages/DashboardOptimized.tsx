@@ -13,6 +13,7 @@ import {
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { ChartCard } from '@/components/dashboard/ChartCard';
 import { useSupabaseProfile } from '@/hooks/useSupabaseProfile';
+import { SyncLoader } from '@/components/ui/sync-loader';
 
 // Lazy load charts para reduzir bundle inicial
 const LazyBarChart = React.lazy(() => 
@@ -216,10 +217,10 @@ export default function Dashboard() {
       <React.Suspense fallback={
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-card rounded-xl shadow-sm border h-64 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <SyncLoader size="lg" />
           </div>
           <div className="bg-card rounded-xl shadow-sm border h-64 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <SyncLoader size="lg" />
           </div>
         </div>
       }>

@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/chatbot/EmptyState';
 import { ChatbotStateManager } from '@/components/admin/ChatbotStateManager';
 import { ChatbotAnalytics } from '@/components/admin/ChatbotAnalytics';
 import { useChatbotFlows, ChatbotFlow } from '@/hooks/useChatbotFlows';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 export default function ChatBot() {
   const {
     flows,
@@ -49,12 +50,7 @@ export default function ChatBot() {
     window.location.href = '/chatbot/flow-builder/new';
   };
   if (loading) {
-    return <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amplie-primary mx-auto"></div>
-          <p className="mt-2 text-gray-600">Carregando fluxos...</p>
-        </div>
-      </div>;
+    return <SyncLoaderSection text="Carregando fluxos..." className="min-h-[400px]" />;
   }
   return <div className="space-y-6">
       <div className="flex justify-between items-center">

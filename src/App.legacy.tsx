@@ -55,10 +55,12 @@ const Idioma = lazy(() => import("@/pages/configuracoes/Idioma").then(m => ({ de
 
 const NotFound = lazy(() => import("@/pages/NotFound").then(m => ({ default: m.default })));
 
+import { SyncLoader } from './components/ui/sync-loader';
+
 // Fallback otimizado para Core Web Vitals (app completo)
 const FastFallback = () => (
   <div className="h-screen w-full bg-background flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <SyncLoader size="lg" />
     <div className="sr-only">Carregando...</div>
   </div>
 );
@@ -66,7 +68,7 @@ const FastFallback = () => (
 // Fallback otimizado para conteúdo da página (apenas área do conteúdo)
 const PageContentFallback = () => (
   <div className="flex items-center justify-center h-40 w-full">
-    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <SyncLoader size="md" />
     <div className="sr-only">Carregando página...</div>
   </div>
 );

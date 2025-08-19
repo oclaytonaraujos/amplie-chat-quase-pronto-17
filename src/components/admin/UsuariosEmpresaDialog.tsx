@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface Empresa {
   id: string;
@@ -106,7 +107,7 @@ export default function UsuariosEmpresaDialog({
         </DialogHeader>
         
         {loading ? (
-          <div className="text-center py-8">Carregando usuários...</div>
+          <SyncLoaderSection text="Carregando usuários..." className="py-8" />
         ) : (
           <div className="border rounded-lg">
             <Table>

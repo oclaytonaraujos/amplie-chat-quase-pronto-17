@@ -10,6 +10,7 @@ import { ExcluirUsuarioDialog } from '@/components/usuarios/ExcluirUsuarioDialog
 import { FiltrosUsuarios } from '@/components/usuarios/FiltrosUsuarios';
 import { useUsuarios } from '@/hooks/useUsuarios';
 import { Loader2 } from 'lucide-react';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 export default function Usuarios() {
   const { usuarios, loading, criarUsuario, editarUsuario, excluirUsuario } = useUsuarios();
@@ -69,11 +70,8 @@ export default function Usuarios() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando usuários...</p>
-        </div>
+      <div className="p-6 min-h-[400px]">
+        <SyncLoaderSection text="Carregando usuários..." />
       </div>
     );
   }
