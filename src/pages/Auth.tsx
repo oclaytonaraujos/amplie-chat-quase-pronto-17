@@ -73,6 +73,36 @@ export default function Auth() {
     }
   };
 
+  const handleSuperAdminLogin = async () => {
+    setIsLoading(true);
+    try {
+      const result = await signIn('ampliemarketing.mkt@gmail.com', '123456');
+      
+      if (result.success) {
+        toast({
+          title: "Login Super Admin realizado",
+          description: "Redirecionando para o painel...",
+        });
+        
+        navigate('/dashboard', { replace: true });
+      } else {
+        toast({
+          title: "Erro no login",
+          description: result.error || "Erro desconhecido",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro inesperado",
+        description: "Ocorreu um erro durante o login.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -339,18 +369,18 @@ export default function Auth() {
                   Preencher credenciais de super admin
                 </button>
                 
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setEmail('ampliemarketing.mkt@gmail.com');
-                    setPassword('Amplie123@');
-                    await handleSignIn({ preventDefault: () => {} } as any);
-                  }}
-                  className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 block w-full"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Entrando...' : 'Login Automático Super Admin'}
-                </button>
+                 <button
+                   type="button"
+                   onClick={async () => {
+                     setEmail('ampliemarketing.mkt@gmail.com');
+                     setPassword('123456');
+                     await handleSignIn({ preventDefault: () => {} } as any);
+                   }}
+                   className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 block w-full"
+                   disabled={isLoading}
+                 >
+                   {isLoading ? 'Entrando...' : 'Login Automático Super Admin'}
+                 </button>
               </div>
               
               <p className="text-xs text-orange-600 mt-2">
