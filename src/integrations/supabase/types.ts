@@ -872,6 +872,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conversas_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conversas_contato_id_fkey"
             columns: ["contato_id"]
             isOneToOne: false
@@ -934,6 +941,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "conversas_internas_participante_1_id_fkey"
+            columns: ["participante_1_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "conversas_internas_participante_2_id_fkey"
             columns: ["participante_2_id"]
             isOneToOne: false
@@ -945,6 +959,13 @@ export type Database = {
             columns: ["participante_2_id"]
             isOneToOne: false
             referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversas_internas_participante_2_id_fkey"
+            columns: ["participante_2_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -1413,6 +1434,106 @@ export type Database = {
         }
         Relationships: []
       }
+      integration_event_logs: {
+        Row: {
+          event_id: string
+          id: string
+          level: string
+          logged_at: string
+          message: string
+          metadata: Json | null
+        }
+        Insert: {
+          event_id: string
+          id?: string
+          level: string
+          logged_at?: string
+          message: string
+          metadata?: Json | null
+        }
+        Update: {
+          event_id?: string
+          id?: string
+          level?: string
+          logged_at?: string
+          message?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_event_logs_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "integration_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      integration_events: {
+        Row: {
+          correlation_id: string
+          created_at: string
+          delivered_at: string | null
+          destination: string | null
+          empresa_id: string
+          error_message: string | null
+          event_type: string
+          id: string
+          idempotency_key: string | null
+          max_retries: number | null
+          payload: Json
+          processed_at: string | null
+          retry_count: number | null
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          correlation_id: string
+          created_at?: string
+          delivered_at?: string | null
+          destination?: string | null
+          empresa_id: string
+          error_message?: string | null
+          event_type: string
+          id?: string
+          idempotency_key?: string | null
+          max_retries?: number | null
+          payload?: Json
+          processed_at?: string | null
+          retry_count?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          correlation_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          destination?: string | null
+          empresa_id?: string
+          error_message?: string | null
+          event_type?: string
+          id?: string
+          idempotency_key?: string | null
+          max_retries?: number | null
+          payload?: Json
+          processed_at?: string | null
+          retry_count?: number | null
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integration_events_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mensagens: {
         Row: {
           conteudo: string
@@ -1508,6 +1629,13 @@ export type Database = {
             columns: ["remetente_id"]
             isOneToOne: false
             referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mensagens_internas_remetente_id_fkey"
+            columns: ["remetente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -2371,6 +2499,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "transferencias_de_agente_id_fkey"
+            columns: ["de_agente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "transferencias_para_agente_id_fkey"
             columns: ["para_agente_id"]
             isOneToOne: false
@@ -2382,6 +2517,13 @@ export type Database = {
             columns: ["para_agente_id"]
             isOneToOne: false
             referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transferencias_para_agente_id_fkey"
+            columns: ["para_agente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
         ]
@@ -2708,6 +2850,13 @@ export type Database = {
             columns: ["agente_id"]
             isOneToOne: false
             referencedRelation: "safe_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_audio_calls_agente_id_fkey"
+            columns: ["agente_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
           {
@@ -3208,6 +3357,29 @@ export type Database = {
           nome?: string | null
           setor?: string | null
           status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      usuarios: {
+        Row: {
+          empresa_id: string | null
+          id: string | null
+        }
+        Insert: {
+          empresa_id?: string | null
+          id?: string | null
+        }
+        Update: {
+          empresa_id?: string | null
+          id?: string | null
         }
         Relationships: [
           {
