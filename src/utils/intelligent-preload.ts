@@ -1,248 +1,268 @@
 /**
- * Sistema de preload inteligente baseado em padrões de uso
+ * Sistema de preload inteligente para otimizar carregamento
+ * Pré-carrega recursos baseado no comportamento do usuário
  */
-import { logger } from './structured-logger';
 
-interface PreloadConfig {
-  priority: 'low' | 'medium' | 'high';
-  trigger: 'idle' | 'hover' | 'visible' | 'immediate';
-  dependencies: string[];
-}
-
-interface PreloadTask {
-  id: string;
-  component: string;
-  config: PreloadConfig;
-  loader: () => Promise<any>;
-  status: 'pending' | 'loading' | 'loaded' | 'error';
-  timestamp?: number;
+interface PreloadOptions {
+  priority?: 'high' | 'medium' | 'low';
+  timeout?: number;
+  retries?: number;
 }
 
 class IntelligentPreloader {
-  private tasks = new Map<string, PreloadTask>();
-  private loadedComponents = new Set<string>();
-  private userPatterns = new Map<string, number>();
-  private isIdle = true;
+  private preloadedUrls = new Set<string>();
+  private pendingPreloads = new Map<string, Promise<void>>();
+  private observer?: IntersectionObserver;
 
   constructor() {
-    this.setupIdleDetection();
     this.setupIntersectionObserver();
+    this.setupUserBehaviorTracking();
   }
 
-  // Registrar padrão de uso do usuário
-  recordUserPattern(route: string, component: string) {
-    const key = `${route}:${component}`;
-    const current = this.userPatterns.get(key) || 0;
-    this.userPatterns.set(key, current + 1);
-  }
+  /**
+   * Preload de URLs baseado em prioridade
+   */
+  async preloadUrl(url: string, options: PreloadOptions = {}): Promise<void> {
+    const { priority = 'medium', timeout = 5000, retries = 2 } = options;
 
-  // Registrar tarefa de preload
-  registerPreloadTask(
-    component: string,
-    loader: () => Promise<any>,
-    config: PreloadConfig
-  ) {
-    const task: PreloadTask = {
-      id: `${component}_${Date.now()}`,
-      component,
-      config,
-      loader,
-      status: 'pending'
-    };
-
-    this.tasks.set(component, task);
-
-    // Executar imediatamente se prioridade alta
-    if (config.priority === 'high' || config.trigger === 'immediate') {
-      this.executePreload(task);
+    if (this.preloadedUrls.has(url) || this.pendingPreloads.has(url)) {
+      return this.pendingPreloads.get(url) || Promise.resolve();
     }
-  }
 
-  // Executar preload baseado em prioridade
-  private async executePreload(task: PreloadTask) {
-    if (task.status !== 'pending') return;
-
-    task.status = 'loading';
-    task.timestamp = Date.now();
+    const preloadPromise = this.performPreload(url, priority, timeout, retries);
+    this.pendingPreloads.set(url, preloadPromise);
 
     try {
-      logger.info(`Preloading component: ${task.component}`, {
-        component: 'IntelligentPreloader',
-        metadata: { 
-          priority: task.config.priority,
-          trigger: task.config.trigger
-        }
-      });
-
-      await task.loader();
-      task.status = 'loaded';
-      this.loadedComponents.add(task.component);
-
-      logger.info(`Successfully preloaded: ${task.component}`, {
-        component: 'IntelligentPreloader',
-        metadata: { 
-          loadTime: Date.now() - task.timestamp!
-        }
-      });
-
+      await preloadPromise;
+      this.preloadedUrls.add(url);
     } catch (error) {
-      task.status = 'error';
-      logger.warn(`Failed to preload: ${task.component}`, {
-        component: 'IntelligentPreloader'
-      }, error as Error);
+      console.warn(`Preload failed for ${url}:`, error);
+    } finally {
+      this.pendingPreloads.delete(url);
     }
   }
 
-  // Setup detecção de idle
-  private setupIdleDetection() {
-    let idleTimer: NodeJS.Timeout;
-
-    const resetIdleTimer = () => {
-      this.isIdle = false;
-      clearTimeout(idleTimer);
-      idleTimer = setTimeout(() => {
-        this.isIdle = true;
-        this.processIdleTasks();
-      }, 2000);
-    };
-
-    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(
-      event => document.addEventListener(event, resetIdleTimer, true)
-    );
-
-    resetIdleTimer();
+  private async performPreload(
+    url: string, 
+    priority: string, 
+    timeout: number, 
+    retries: number
+  ): Promise<void> {
+    let attempt = 0;
+    
+    while (attempt <= retries) {
+      try {
+        await this.fetchWithTimeout(url, timeout, priority);
+        return;
+      } catch (error) {
+        attempt++;
+        if (attempt > retries) throw error;
+        
+        // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+      }
+    }
   }
 
-  // Setup intersection observer para preload baseado em visibilidade
-  private setupIntersectionObserver() {
-    if (!('IntersectionObserver' in window)) return;
+  private fetchWithTimeout(url: string, timeout: number, priority: string): Promise<Response> {
+    const controller = new AbortController();
+    const signal = controller.signal;
 
-    const observer = new IntersectionObserver(
+    // Timeout handler
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    return fetch(url, { 
+      signal,
+      cache: 'force-cache',
+      mode: 'cors',
+      credentials: 'same-origin'
+    }).then(response => {
+      clearTimeout(timeoutId);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      return response;
+    }).catch(error => {
+      clearTimeout(timeoutId);
+      throw error;
+    });
+  }
+
+  /**
+   * Preload de componentes React
+   */
+  preloadComponent(importFn: () => Promise<any>): Promise<any> {
+    return importFn().catch(error => {
+      console.warn('Component preload failed:', error);
+      return null;
+    });
+  }
+
+  /**
+   * Setup do Intersection Observer para preload automático
+   */
+  private setupIntersectionObserver(): void {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      return;
+    }
+
+    this.observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            const component = entry.target.getAttribute('data-preload');
-            if (component && this.tasks.has(component)) {
-              const task = this.tasks.get(component)!;
-              if (task.config.trigger === 'visible') {
-                this.executePreload(task);
-              }
+            const element = entry.target as HTMLElement;
+            const preloadUrl = element.dataset.preload;
+            
+            if (preloadUrl) {
+              this.preloadUrl(preloadUrl, { priority: 'low' });
             }
           }
         });
       },
-      { rootMargin: '50px' }
+      {
+        rootMargin: '100px',
+        threshold: 0.1
+      }
     );
-
-    // Observar elementos com data-preload
-    document.querySelectorAll('[data-preload]').forEach(el => {
-      observer.observe(el);
-    });
   }
 
-  // Processar tarefas durante idle
-  private processIdleTasks() {
-    if (!this.isIdle) return;
-
-    const pendingTasks = Array.from(this.tasks.values())
-      .filter(task => 
-        task.status === 'pending' && 
-        task.config.trigger === 'idle'
-      )
-      .sort((a, b) => {
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        return priorityOrder[b.config.priority] - priorityOrder[a.config.priority];
-      });
-
-    // Executar até 3 tarefas por vez durante idle
-    pendingTasks.slice(0, 3).forEach(task => {
-      this.executePreload(task);
-    });
+  /**
+   * Observar elemento para preload automático
+   */
+  observeElement(element: HTMLElement): void {
+    if (this.observer) {
+      this.observer.observe(element);
+    }
   }
 
-  // Preload baseado em hover
-  setupHoverPreload(element: HTMLElement, component: string) {
-    let hoverTimer: NodeJS.Timeout;
+  /**
+   * Setup de tracking de comportamento do usuário
+   */
+  private setupUserBehaviorTracking(): void {
+    if (typeof window === 'undefined') return;
 
-    element.addEventListener('mouseenter', () => {
-      hoverTimer = setTimeout(() => {
-        const task = this.tasks.get(component);
-        if (task && task.config.trigger === 'hover') {
-          this.executePreload(task);
-        }
-      }, 100); // 100ms delay para evitar preloads desnecessários
+    // Preload em hover (desktop)
+    document.addEventListener('mouseover', (event) => {
+      const target = event.target as HTMLElement;
+      const link = target.closest('a[href]') as HTMLAnchorElement;
+      
+      if (link && this.isInternalLink(link.href)) {
+        this.preloadUrl(link.href, { priority: 'high' });
+      }
     });
 
-    element.addEventListener('mouseleave', () => {
-      clearTimeout(hoverTimer);
+    // Preload em touch start (mobile)
+    document.addEventListener('touchstart', (event) => {
+      const target = event.target as HTMLElement;
+      const link = target.closest('a[href]') as HTMLAnchorElement;
+      
+      if (link && this.isInternalLink(link.href)) {
+        this.preloadUrl(link.href, { priority: 'high' });
+      }
     });
+
+    // Preload baseado em scroll pattern
+    this.setupScrollPatternPreload();
   }
 
-  // Verificar se componente já foi carregado
-  isLoaded(component: string): boolean {
-    return this.loadedComponents.has(component);
-  }
+  private setupScrollPatternPreload(): void {
+    let scrollDirection: 'up' | 'down' = 'down';
+    let lastScrollY = window.scrollY;
+    let scrollVelocity = 0;
 
-  // Obter estatísticas de preload
-  getStats() {
-    const tasks = Array.from(this.tasks.values());
-    return {
-      total: tasks.length,
-      loaded: tasks.filter(t => t.status === 'loaded').length,
-      loading: tasks.filter(t => t.status === 'loading').length,
-      errors: tasks.filter(t => t.status === 'error').length,
-      userPatterns: Object.fromEntries(this.userPatterns)
+    const scrollHandler = () => {
+      const currentScrollY = window.scrollY;
+      const deltaY = currentScrollY - lastScrollY;
+      
+      scrollDirection = deltaY > 0 ? 'down' : 'up';
+      scrollVelocity = Math.abs(deltaY);
+      
+      // Se usuário está scrollando rápido para baixo, preload mais conteúdo
+      if (scrollDirection === 'down' && scrollVelocity > 10) {
+        this.preloadNearbyContent();
+      }
+      
+      lastScrollY = currentScrollY;
     };
+
+    window.addEventListener('scroll', scrollHandler, { passive: true });
+  }
+
+  private preloadNearbyContent(): void {
+    // Procurar por links e imagens próximas à viewport
+    const viewportHeight = window.innerHeight;
+    const scrollTop = window.scrollY;
+    const preloadZone = {
+      top: scrollTop + viewportHeight,
+      bottom: scrollTop + viewportHeight * 2
+    };
+
+    // Preload de links
+    document.querySelectorAll('a[href]').forEach(link => {
+      const rect = link.getBoundingClientRect();
+      const elementTop = rect.top + scrollTop;
+      
+      if (elementTop >= preloadZone.top && elementTop <= preloadZone.bottom) {
+        const href = (link as HTMLAnchorElement).href;
+        if (this.isInternalLink(href)) {
+          this.preloadUrl(href, { priority: 'medium' });
+        }
+      }
+    });
+
+    // Preload de imagens
+    document.querySelectorAll('img[data-src]').forEach(img => {
+      const rect = img.getBoundingClientRect();
+      const elementTop = rect.top + scrollTop;
+      
+      if (elementTop >= preloadZone.top && elementTop <= preloadZone.bottom) {
+        const dataSrc = img.getAttribute('data-src');
+        if (dataSrc) {
+          this.preloadUrl(dataSrc, { priority: 'low' });
+        }
+      }
+    });
+  }
+
+  private isInternalLink(url: string): boolean {
+    try {
+      const urlObj = new URL(url, window.location.origin);
+      return urlObj.origin === window.location.origin;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Cleanup
+   */
+  destroy(): void {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
   }
 }
 
-// Instância global
+// Singleton instance
 export const intelligentPreloader = new IntelligentPreloader();
 
-// Hook para usar o preloader
-export function useIntelligentPreload() {
-  return {
-    preload: (
-      component: string,
-      loader: () => Promise<any>,
-      config: PreloadConfig
-    ) => intelligentPreloader.registerPreloadTask(component, loader, config),
-    
-    isLoaded: (component: string) => intelligentPreloader.isLoaded(component),
-    
-    recordUsage: (route: string, component: string) => 
-      intelligentPreloader.recordUserPattern(route, component),
-      
-    setupHover: (element: HTMLElement, component: string) =>
-      intelligentPreloader.setupHoverPreload(element, component),
-      
-    getStats: () => intelligentPreloader.getStats()
+// Hook para usar preloader em componentes React
+export const useIntelligentPreload = () => {
+  const preloadUrl = (url: string, options?: PreloadOptions) => {
+    return intelligentPreloader.preloadUrl(url, options);
   };
-}
 
-// Presets de configuração comum
-export const preloadConfigs = {
-  criticalRoute: {
-    priority: 'high' as const,
-    trigger: 'immediate' as const,
-    dependencies: []
-  },
-  
-  frequentComponent: {
-    priority: 'medium' as const,
-    trigger: 'idle' as const,
-    dependencies: []
-  },
-  
-  onDemandComponent: {
-    priority: 'low' as const,
-    trigger: 'hover' as const,
-    dependencies: []
-  },
-  
-  visibleComponent: {
-    priority: 'medium' as const,
-    trigger: 'visible' as const,
-    dependencies: []
-  }
+  const preloadComponent = (importFn: () => Promise<any>) => {
+    return intelligentPreloader.preloadComponent(importFn);
+  };
+
+  const observeElement = (element: HTMLElement | null) => {
+    if (element) {
+      intelligentPreloader.observeElement(element);
+    }
+  };
+
+  return { preloadUrl, preloadComponent, observeElement };
 };
+
+export default intelligentPreloader;

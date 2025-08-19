@@ -227,22 +227,17 @@ OptimizedImage.displayName = "OptimizedImage";
 
 // Hook para componentes otimizados
 export function useOptimizedComponent() {
-  const { preload, isLoaded } = useIntelligentPreload();
+  const { preloadComponent } = useIntelligentPreload();
 
-  const preloadComponent = React.useCallback(
+  const preloadComponentWithName = React.useCallback(
     (componentName: string, loader: () => Promise<any>) => {
-      preload(componentName, loader, {
-        priority: 'medium',
-        trigger: 'hover',
-        dependencies: []
-      });
+      return preloadComponent(loader);
     },
-    [preload]
+    [preloadComponent]
   );
 
   return {
-    preloadComponent,
-    isLoaded
+    preloadComponent: preloadComponentWithName
   };
 }
 

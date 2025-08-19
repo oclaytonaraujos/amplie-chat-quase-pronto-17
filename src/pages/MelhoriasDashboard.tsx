@@ -385,7 +385,7 @@ export default function MelhoriasDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PerformanceMonitor showDebugInfo={true} />
+              <PerformanceMonitor enabled={true} />
             </CardContent>
           </Card>
 

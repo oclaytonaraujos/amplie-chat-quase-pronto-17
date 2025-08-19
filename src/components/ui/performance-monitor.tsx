@@ -1,248 +1,137 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { Activity, Zap, Clock, Cpu } from 'lucide-react';
+/**
+ * Monitor de performance em tempo real
+ * Rastreia métricas vitais da aplicação
+ */
+import React, { useEffect, useState } from 'react';
+import { Card } from './card';
+import { Badge } from './badge';
+import { logger } from '@/utils/production-logger';
+
 interface PerformanceMetrics {
   fps: number;
   memoryUsage: number;
+  domNodes: number;
   loadTime: number;
-  responseTime: number;
-  bundleSize: number;
-  renderTime: number;
+  networkRequests: number;
 }
-interface PerformanceEntry {
-  name: string;
-  duration: number;
-  startTime: number;
-  type: string;
-}
-export const PerformanceMonitor: React.FC<{
-  showDebugInfo?: boolean;
-  onMetricsUpdate?: (metrics: PerformanceMetrics) => void;
-}> = ({
-  showDebugInfo = false,
-  onMetricsUpdate
+
+export const PerformanceMonitor: React.FC<{ enabled?: boolean }> = ({ 
+  enabled = process.env.NODE_ENV === 'development' 
 }) => {
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
     fps: 0,
     memoryUsage: 0,
+    domNodes: 0,
     loadTime: 0,
-    responseTime: 0,
-    bundleSize: 0,
-    renderTime: 0
+    networkRequests: 0
   });
-  const [isVisible, setIsVisible] = useState(showDebugInfo);
 
-  // FPS Counter
-  const measureFPS = useCallback(() => {
-    let frames = 0;
-    let startTime = performance.now();
-    const countFrame = () => {
-      frames++;
-      const currentTime = performance.now();
-      if (currentTime - startTime >= 1000) {
-        const fps = Math.round(frames * 1000 / (currentTime - startTime));
-        setMetrics(prev => ({
-          ...prev,
-          fps
-        }));
-        frames = 0;
-        startTime = currentTime;
-      }
-      requestAnimationFrame(countFrame);
-    };
-    requestAnimationFrame(countFrame);
-  }, []);
-
-  // Memory Usage
-  const measureMemory = useCallback(() => {
-    if ('memory' in performance) {
-      const memory = (performance as any).memory;
-      const usedMB = Math.round(memory.usedJSHeapSize / 1024 / 1024);
-      const totalMB = Math.round(memory.totalJSHeapSize / 1024 / 1024);
-      const percentage = Math.round(usedMB / totalMB * 100);
-      setMetrics(prev => ({
-        ...prev,
-        memoryUsage: percentage
-      }));
-    }
-  }, []);
-
-  // Page Load Time
-  const measureLoadTime = useCallback(() => {
-    if (typeof window !== 'undefined' && 'performance' in window) {
-      const navigation = performance.getEntriesByType('navigation')[0] as any;
-      if (navigation) {
-        const loadTime = Math.round(navigation.loadEventEnd - navigation.fetchStart);
-        setMetrics(prev => ({
-          ...prev,
-          loadTime
-        }));
-      }
-    }
-  }, []);
-
-  // Bundle Size (approximate)
-  const measureBundleSize = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      const scripts = Array.from(document.querySelectorAll('script[src]'));
-      let totalSize = 0;
-      scripts.forEach(script => {
-        const src = (script as HTMLScriptElement).src;
-        if (src && src.includes(window.location.origin)) {
-          // Estimate based on typical JS bundle sizes
-          totalSize += 500; // KB estimate per script
-        }
-      });
-      setMetrics(prev => ({
-        ...prev,
-        bundleSize: totalSize
-      }));
-    }
-  }, []);
-
-  // Render Time Measurement
-  const measureRenderTime = useCallback(() => {
-    const startTime = performance.now();
-
-    // Measure next frame render time
-    requestAnimationFrame(() => {
-      const renderTime = performance.now() - startTime;
-      setMetrics(prev => ({
-        ...prev,
-        renderTime: Math.round(renderTime)
-      }));
-    });
-  }, []);
-
-  // API Response Time (disabled to improve performance)
-  const measureResponseTime = useCallback(async () => {
-    // Disabled to prevent constant API calls that slow down the system
-    setMetrics(prev => ({
-      ...prev,
-      responseTime: 0
-    }));
-  }, []);
   useEffect(() => {
-    measureFPS();
-    measureLoadTime();
-    measureBundleSize();
+    if (!enabled) return;
 
-    // Update metrics periodically - reduced frequency
     const interval = setInterval(() => {
-      measureMemory();
-      measureRenderTime();
-      // Remove constant API health checks that cause network spam
-    }, 10000);
+      // FPS monitoring
+      let frames = 0;
+      const startTime = performance.now();
+      
+      function countFrames() {
+        frames++;
+        if (performance.now() - startTime < 1000) {
+          requestAnimationFrame(countFrames);
+        } else {
+          setMetrics(prev => ({ ...prev, fps: frames }));
+        }
+      }
+      requestAnimationFrame(countFrames);
+
+      // Memory usage
+      if ('memory' in performance) {
+        const memory = (performance as any).memory;
+        setMetrics(prev => ({
+          ...prev,
+          memoryUsage: Math.round(memory.usedJSHeapSize / 1024 / 1024)
+        }));
+      }
+
+      // DOM nodes count
+      setMetrics(prev => ({
+        ...prev,
+        domNodes: document.querySelectorAll('*').length
+      }));
+
+      // Performance timing
+      const navigationTiming = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      if (navigationTiming) {
+        setMetrics(prev => ({
+          ...prev,
+          loadTime: Math.round(navigationTiming.loadEventEnd - navigationTiming.fetchStart)
+        }));
+      }
+
+      // Network requests count
+      const resourceEntries = performance.getEntriesByType('resource');
+      setMetrics(prev => ({
+        ...prev,
+        networkRequests: resourceEntries.length
+      }));
+
+    }, 2000);
+
     return () => clearInterval(interval);
-  }, [measureFPS, measureLoadTime, measureBundleSize, measureMemory, measureRenderTime, measureResponseTime]);
+  }, [enabled]);
+
   useEffect(() => {
-    onMetricsUpdate?.(metrics);
-  }, [metrics, onMetricsUpdate]);
-
-  // Performance status helpers
-  const getPerformanceStatus = (metric: keyof PerformanceMetrics, value: number) => {
-    const thresholds = {
-      fps: {
-        good: 55,
-        fair: 30
-      },
-      memoryUsage: {
-        good: 50,
-        fair: 80
-      },
-      loadTime: {
-        good: 2000,
-        fair: 5000
-      },
-      responseTime: {
-        good: 100,
-        fair: 500
-      },
-      renderTime: {
-        good: 16,
-        fair: 33
-      },
-      bundleSize: {
-        good: 500,
-        fair: 1000
-      }
-    };
-    const threshold = thresholds[metric];
-    if (!threshold) return 'unknown';
-    if (metric === 'memoryUsage') {
-      if (value <= threshold.good) return 'good';
-      if (value <= threshold.fair) return 'fair';
-      return 'poor';
-    } else {
-      if (value <= threshold.good) return 'good';
-      if (value <= threshold.fair) return 'fair';
-      return 'poor';
-    }
-  };
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'good':
-        return 'bg-green-500';
-      case 'fair':
-        return 'bg-yellow-500';
-      case 'poor':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
-    switch (status) {
-      case 'good':
-        return 'default';
-      case 'fair':
-        return 'secondary';
-      case 'poor':
-        return 'destructive';
-      default:
-        return 'outline';
-    }
-  };
-
-  // Toggle visibility with keyboard shortcut
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-        setIsVisible(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, []);
-  if (!isVisible && !showDebugInfo) return null;
-  return <Card className="fixed bottom-4 right-4 w-80 z-50 shadow-lg">
-      
-      
-    </Card>;
-};
-
-// Hook para métricas de performance
-export const usePerformanceMetrics = () => {
-  const [metrics, setMetrics] = useState<PerformanceMetrics | null>(null);
-  const logPerformance = useCallback((label: string, fn: () => void | Promise<void>) => {
-    const startTime = performance.now();
-    const result = fn();
-    if (result instanceof Promise) {
-      return result.finally(() => {
-        const duration = performance.now() - startTime;
-        console.debug(`Performance [${label}]:`, `${duration.toFixed(2)}ms`);
+    // Log performance warnings
+    if (metrics.fps > 0 && metrics.fps < 30) {
+      logger.warn('Low FPS detected', { 
+        component: 'PerformanceMonitor',
+        metadata: { fps: metrics.fps }
       });
-    } else {
-      const duration = performance.now() - startTime;
-      console.debug(`Performance [${label}]:`, `${duration.toFixed(2)}ms`);
-      return result;
     }
-  }, []);
-  return {
-    metrics,
-    setMetrics,
-    logPerformance
-  };
+
+    if (metrics.memoryUsage > 100) {
+      logger.warn('High memory usage detected', { 
+        component: 'PerformanceMonitor',
+        metadata: { memoryUsage: metrics.memoryUsage }
+      });
+    }
+  }, [metrics]);
+
+  if (!enabled) return null;
+
+  return (
+    <Card className="fixed bottom-4 right-4 p-3 bg-background/80 backdrop-blur-sm border z-50">
+      <div className="space-y-2 text-xs">
+        <div className="font-semibold">Performance Monitor</div>
+        
+        <div className="flex items-center gap-2">
+          <span>FPS:</span>
+          <Badge variant={metrics.fps >= 50 ? 'default' : metrics.fps >= 30 ? 'secondary' : 'destructive'}>
+            {metrics.fps}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span>Memory:</span>
+          <Badge variant={metrics.memoryUsage < 50 ? 'default' : metrics.memoryUsage < 100 ? 'secondary' : 'destructive'}>
+            {metrics.memoryUsage}MB
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span>DOM:</span>
+          <Badge variant={metrics.domNodes < 1000 ? 'default' : 'secondary'}>
+            {metrics.domNodes}
+          </Badge>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span>Load:</span>
+          <Badge variant={metrics.loadTime < 2000 ? 'default' : metrics.loadTime < 5000 ? 'secondary' : 'destructive'}>
+            {metrics.loadTime}ms
+          </Badge>
+        </div>
+      </div>
+    </Card>
+  );
 };
