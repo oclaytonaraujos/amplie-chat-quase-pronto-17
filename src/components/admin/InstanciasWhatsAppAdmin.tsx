@@ -85,8 +85,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button as ShadButton } from "@/components/ui/button"
 import { Input as ShadInput } from "@/components/ui/input"
 import { InstanceBulkActions } from './InstanceBulkActions';
-// Removido: componente de webhook não utilizado
-import { UnifiedInstanceDashboard } from './UnifiedInstanceDashboard';
 import { WhatsAppConnectionStatus } from '@/components/whatsapp/WhatsAppConnectionStatus';
 import { QRCodeModal } from '@/components/whatsapp/QRCodeModal';
 
@@ -316,14 +314,6 @@ export const InstanciasWhatsAppAdmin: React.FC<InstanciasWhatsAppAdminProps> = (
         />
       )}
 
-      {/* Removido: ImprovedWebhookCenter */}
-      <UnifiedInstanceDashboard instances={instancias.map(inst => ({
-        id: inst.id,
-        instance_name: inst.instance_name,
-        status: inst.status,
-        empresa_nome: inst.empresa_nome,
-        webhook_status: inst.webhook_status
-      }))} />
-    </div>
-  );
+      </div>
+    );
 };

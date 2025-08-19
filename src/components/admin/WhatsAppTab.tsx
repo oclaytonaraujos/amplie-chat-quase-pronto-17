@@ -106,8 +106,6 @@ export function WhatsAppTab() {
 
       <ChatbotStateManager />
 
-      {/* Gerenciamento de Instâncias no Admin já está em IntegracoesCentralizadas */}
-
       {/* Links Úteis */}
       <Card className="rounded-2xl shadow-lg border-0">
         <CardHeader className="p-6">
@@ -147,7 +145,6 @@ export function WhatsAppTab() {
         </CardContent>
       </Card>
 
-      {/* Removido: Dialog N8nConfig */}
     </div>
   );
 }

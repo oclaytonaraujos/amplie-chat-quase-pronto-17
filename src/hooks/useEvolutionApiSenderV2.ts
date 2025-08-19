@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/structured-logger';
-// Removido: EventsService
+
 import { useEvolutionApiSender } from './useEvolutionApiSender';
 
 interface SendMessageParams {
@@ -90,10 +90,8 @@ export function useEvolutionApiSenderV2() {
         return await directSender.sendMessage(params);
       }
 
-      const instance = await getActiveInstance();
-      
-      let response;
-      const idempotencyKey = `${params.conversaId || 'no-conv'}-${Date.now()}-${Math.random()}`;
+      // Get instance for validation but use direct sender for all message types
+      await getActiveInstance();
 
       switch (params.tipo) {
         case 'texto':
