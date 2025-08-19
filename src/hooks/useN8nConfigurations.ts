@@ -29,6 +29,9 @@ type N8nConfigInsert = {
   api_key?: string;
   webhook_receive_url?: string;
   webhook_send_url?: string;
+  webhook_create_connection?: string;
+  webhook_delete_instance?: string;
+  webhook_chatbot?: string;
   status?: 'active' | 'inactive' | 'error';
   settings?: any;
 };

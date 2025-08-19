@@ -19,7 +19,10 @@ export function N8nIntegrationManager() {
     instance_url: 'https://app.n8n.cloud',
     api_key: '',
     webhook_receive_url: '',
-    webhook_send_url: ''
+    webhook_send_url: '',
+    webhook_create_connection: '',
+    webhook_delete_instance: '',
+    webhook_chatbot: ''
   });
 
   const handleSaveConfig = async (e: React.FormEvent) => {
@@ -31,7 +34,10 @@ export function N8nIntegrationManager() {
         instance_url: 'https://app.n8n.cloud',
         api_key: '',
         webhook_receive_url: '',
-        webhook_send_url: ''
+        webhook_send_url: '',
+        webhook_create_connection: '',
+        webhook_delete_instance: '',
+        webhook_chatbot: ''
       });
     }
   };
@@ -155,23 +161,56 @@ export function N8nIntegrationManager() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="webhook_receive_url">URL Recebimento</Label>
-                  <Input
-                    id="webhook_receive_url"
-                    value={formData.webhook_receive_url}
-                    onChange={(e) => setFormData({ ...formData, webhook_receive_url: e.target.value })}
-                    placeholder="URL para receber dados do n8n"
-                  />
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="webhook_receive_url">URL Recebimento</Label>
+                    <Input
+                      id="webhook_receive_url"
+                      value={formData.webhook_receive_url}
+                      onChange={(e) => setFormData({ ...formData, webhook_receive_url: e.target.value })}
+                      placeholder="URL para receber dados do n8n"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="webhook_send_url">URL Envio</Label>
+                    <Input
+                      id="webhook_send_url"
+                      value={formData.webhook_send_url}
+                      onChange={(e) => setFormData({ ...formData, webhook_send_url: e.target.value })}
+                      placeholder="URL para enviar eventos para n8n"
+                    />
+                  </div>
                 </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="webhook_create_connection">URL Criação de Conexão</Label>
+                    <Input
+                      id="webhook_create_connection"
+                      value={formData.webhook_create_connection}
+                      onChange={(e) => setFormData({ ...formData, webhook_create_connection: e.target.value })}
+                      placeholder="URL para criar nova conexão WhatsApp"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="webhook_delete_instance">URL Delete de Instância</Label>
+                    <Input
+                      id="webhook_delete_instance"
+                      value={formData.webhook_delete_instance}
+                      onChange={(e) => setFormData({ ...formData, webhook_delete_instance: e.target.value })}
+                      placeholder="URL para deletar instância WhatsApp"
+                    />
+                  </div>
+                </div>
+                
                 <div>
-                  <Label htmlFor="webhook_send_url">URL Envio</Label>
+                  <Label htmlFor="webhook_chatbot">URL Chatbot</Label>
                   <Input
-                    id="webhook_send_url"
-                    value={formData.webhook_send_url}
-                    onChange={(e) => setFormData({ ...formData, webhook_send_url: e.target.value })}
-                    placeholder="URL para enviar eventos para n8n"
+                    id="webhook_chatbot"
+                    value={formData.webhook_chatbot}
+                    onChange={(e) => setFormData({ ...formData, webhook_chatbot: e.target.value })}
+                    placeholder="URL para processar eventos do chatbot"
                   />
                 </div>
               </div>
