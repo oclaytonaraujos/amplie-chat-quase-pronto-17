@@ -53,31 +53,65 @@ export function N8nWebhookConfig() {
   }, []);
 
   const loadConfig = async () => {
+    console.log('🔄 Iniciando carregamento da configuração N8N...');
+    
     try {
       setLoading(true);
       
-      // Verificar se Supabase está disponível
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      // Timeout para conexão com Supabase (5 segundos)
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout na conexão')), 5000);
+      });
+
+      // Verificar se Supabase está disponível com timeout
+      const userDataPromise = supabase.auth.getUser();
+      
+      const { data: userData, error: userError } = await Promise.race([
+        userDataPromise,
+        timeoutPromise
+      ]) as any;
+
       if (userError) {
-        console.warn('Supabase indisponível, usando configuração padrão:', userError);
-        // Em modo offline, usar configuração padrão
+        console.warn('⚠️ Supabase indisponível:', userError.message);
         setConfig(prev => ({ 
           ...prev, 
-          empresa_id: 'offline-mode',
-          // Manter valores existentes se já estavam preenchidos
+          empresa_id: 'offline-mode'
         }));
+        
+        toast({
+          title: "Modo Offline",
+          description: "Conexão indisponível. Configuração em modo offline.",
+        });
         return;
       }
 
-      const { data: profile } = await supabase
+      console.log('✅ Usuário autenticado, buscando perfil...');
+
+      // Usar maybeSingle() ao invés de single() para evitar erro quando não encontrar dados
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('empresa_id')
         .eq('id', userData.user.id)
-        .single();
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('❌ Erro ao buscar perfil:', profileError);
+        throw profileError;
+      }
 
       if (!profile?.empresa_id) {
-        throw new Error('Usuário não possui empresa associada');
+        console.warn('⚠️ Usuário sem empresa associada');
+        setConfig(prev => ({ ...prev, empresa_id: 'offline-mode' }));
+        
+        toast({
+          title: "Aviso",
+          description: "Usuário não possui empresa associada. Modo offline ativado.",
+          variant: "destructive",
+        });
+        return;
       }
+
+      console.log('🏢 Empresa encontrada:', profile.empresa_id);
 
       // Buscar configuração existente
       const { data: existingConfig, error } = await supabase
@@ -87,29 +121,33 @@ export function N8nWebhookConfig() {
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
+        console.error('❌ Erro ao buscar configuração N8N:', error);
         throw error;
       }
 
       if (existingConfig) {
+        console.log('📋 Configuração N8N encontrada');
         setConfig(existingConfig);
       } else {
+        console.log('📋 Nenhuma configuração encontrada, criando padrão');
         setConfig(prev => ({ ...prev, empresa_id: profile.empresa_id }));
       }
     } catch (error: any) {
-      console.error('Erro ao carregar configuração:', error);
+      console.error('❌ Erro geral ao carregar configuração:', error);
       
-      // Em caso de erro, ainda permitir que o usuário configure URLs
+      // Forçar modo offline em caso de erro
       setConfig(prev => ({ 
         ...prev, 
-        empresa_id: prev.empresa_id || 'offline-mode'
+        empresa_id: 'offline-mode'
       }));
       
       toast({
         title: "Modo Offline",
-        description: "Conexão indisponível. Você pode configurar as URLs, mas elas serão salvas apenas localmente.",
+        description: "Erro na conexão. Configuração salva localmente.",
         variant: "destructive",
       });
     } finally {
+      console.log('✅ Finalizando carregamento N8N');
       setLoading(false);
     }
   };
