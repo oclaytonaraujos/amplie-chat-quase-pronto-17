@@ -10,13 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  // Tentar usar o auth otimizado primeiro, fallback para o padrão
-  let authHook;
-  try {
-    authHook = useOptimizedAuth();
-  } catch {
-    authHook = useAuth();
-  }
+  const authHook = useOptimizedAuth();
   
   const { user, loading, isOfflineMode } = authHook;
   const location = useLocation();

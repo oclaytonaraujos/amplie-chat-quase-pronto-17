@@ -1,14 +1,8 @@
-import { useAuth } from '@/hooks/useAuth';
 import { useOptimizedAuth } from '@/contexts/OptimizedAuthProvider';
 
 export function useUserRole() {
   // Tentar usar o auth otimizado primeiro, fallback para o padrão
-  let authHook;
-  try {
-    authHook = useOptimizedAuth();
-  } catch {
-    authHook = useAuth();
-  }
+  const authHook = useOptimizedAuth();
   
   const { profile, loading } = authHook;
 
