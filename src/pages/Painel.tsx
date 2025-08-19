@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, MessageSquare, Users, TrendingUp, Shield, Activity } from 'lucide-react';
+import { BarChart3, MessageSquare, Users, TrendingUp, Shield, Activity, Monitor } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -64,6 +64,12 @@ export default function Painel() {
       description: "Configure automações",
       href: "/chatbot",
       icon: Shield
+    },
+    {
+      title: "Monitor de Eventos",
+      description: "Sistema n8n em tempo real",
+      href: "/events-monitor",
+      icon: Monitor
     }
   ];
 

@@ -88,32 +88,8 @@ const preloadCriticalPages = () => {
     }
   }
 
-  // Delay o preload para não bloquear a renderização inicial
-  setTimeout(() => {
-    requestIdleCallback(() => {
-      const currentPath = window.location.pathname;
-      
-      // Apenas rotas mais utilizadas
-      const criticalRoutes: Record<string, string[]> = {
-        '/': ['@/pages/Atendimento'],
-        '/painel': ['@/pages/Atendimento'],
-        '/auth': ['@/pages/Painel']
-      };
-
-      const routesToPreload = criticalRoutes[currentPath] || [];
-      
-      routesToPreload.forEach(route => {
-        try {
-          import(route);
-        } catch (error) {
-          // Silenciar warnings em produção
-          if (import.meta.env.DEV) {
-            console.warn(`Failed to preload ${route}:`, error);
-          }
-        }
-      });
-    }, { timeout: 3000 });
-  }, 2000);
+  // Preload crítico removido temporariamente para diagnóstico
+  console.log('Preload function called - skipping for debugging');
 };
 
 function AppRoutes() {

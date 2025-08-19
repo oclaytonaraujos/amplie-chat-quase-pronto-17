@@ -14,6 +14,7 @@ import GerenciarEquipe from "@/pages/GerenciarEquipe";
 import MeuPerfil from "@/pages/MeuPerfil";
 import PlanoFaturamento from "@/pages/PlanoFaturamento";
 import Painel from "@/pages/Painel";
+import EventsMonitor from "@/pages/EventsMonitor";
 
 export function ProtectedRoutes() {
   return (
@@ -110,6 +111,14 @@ export function ProtectedRoutes() {
         <ProtectedRoute>
           <Layout title="Plano e Faturamento" description="Gerenciamento financeiro">
             <PlanoFaturamento />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      <Route path="/events-monitor" element={
+        <ProtectedRoute>
+          <Layout title="Monitor de Eventos" description="Sistema de eventos n8n">
+            <EventsMonitor />
           </Layout>
         </ProtectedRoute>
       } />
