@@ -132,6 +132,42 @@ export function N8nIntegrationManager() {
         </Button>
       </div>
 
+      {/* Status Overview dos Webhooks */}
+      {configurations.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-muted/30 rounded-lg">
+          <div className="text-center">
+            <div className="text-sm font-medium text-green-700">🔄 Envio</div>
+            <div className="text-xs text-muted-foreground">
+              {configurations.filter(c => c.webhook_send_url).length}/{configurations.length}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm font-medium text-blue-700">📥 Recebimento</div>
+            <div className="text-xs text-muted-foreground">
+              {configurations.filter(c => c.webhook_receive_url).length}/{configurations.length}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm font-medium text-purple-700">➕ Conexão</div>
+            <div className="text-xs text-muted-foreground">
+              {configurations.filter(c => c.webhook_create_connection).length}/{configurations.length}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm font-medium text-red-700">🗑️ Delete</div>
+            <div className="text-xs text-muted-foreground">
+              {configurations.filter(c => c.webhook_delete_instance).length}/{configurations.length}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-sm font-medium text-orange-700">🤖 Chatbot</div>
+            <div className="text-xs text-muted-foreground">
+              {configurations.filter(c => c.webhook_chatbot).length}/{configurations.length}
+            </div>
+          </div>
+        </div>
+      )}
+
       {showNewConfig && (
         <Card>
           <CardHeader>
@@ -255,6 +291,7 @@ export function N8nIntegrationManager() {
               <Tabs defaultValue="events">
                 <TabsList>
                   <TabsTrigger value="events">Eventos</TabsTrigger>
+                  <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
                   <TabsTrigger value="stats">Estatísticas</TabsTrigger>
                 </TabsList>
                 
@@ -288,6 +325,83 @@ export function N8nIntegrationManager() {
                         </div>
                       );
                     })}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="webhooks" className="space-y-4">
+                  <div className="grid gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium text-green-700 mb-2">🔄 Webhooks Bidirecionais</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Envio de Eventos</span>
+                          <Badge variant={config.webhook_send_url ? 'default' : 'secondary'}>
+                            {config.webhook_send_url ? 'Configurado' : 'Não configurado'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Recebimento de Dados</span>
+                          <Badge variant={config.webhook_receive_url ? 'default' : 'secondary'}>
+                            {config.webhook_receive_url ? 'Configurado' : 'Não configurado'}
+                          </Badge>
+                        </div>
+                        {config.webhook_send_url && (
+                          <p className="text-xs text-muted-foreground break-all">
+                            📤 {config.webhook_send_url}
+                          </p>
+                        )}
+                        {config.webhook_receive_url && (
+                          <p className="text-xs text-muted-foreground break-all">
+                            📥 {config.webhook_receive_url}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium text-blue-700 mb-2">📱 Gestão de Instâncias</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Criação de Conexão</span>
+                          <Badge variant={config.webhook_create_connection ? 'default' : 'secondary'}>
+                            {config.webhook_create_connection ? 'Configurado' : 'Não configurado'}
+                          </Badge>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Delete de Instância</span>
+                          <Badge variant={config.webhook_delete_instance ? 'default' : 'secondary'}>
+                            {config.webhook_delete_instance ? 'Configurado' : 'Não configurado'}
+                          </Badge>
+                        </div>
+                        {config.webhook_create_connection && (
+                          <p className="text-xs text-muted-foreground break-all">
+                            ➕ {config.webhook_create_connection}
+                          </p>
+                        )}
+                        {config.webhook_delete_instance && (
+                          <p className="text-xs text-muted-foreground break-all">
+                            🗑️ {config.webhook_delete_instance}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium text-purple-700 mb-2">🤖 Chatbot</h4>
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm">Processamento Chatbot</span>
+                          <Badge variant={config.webhook_chatbot ? 'default' : 'secondary'}>
+                            {config.webhook_chatbot ? 'Configurado' : 'Não configurado'}
+                          </Badge>
+                        </div>
+                        {config.webhook_chatbot && (
+                          <p className="text-xs text-muted-foreground break-all">
+                            🤖 {config.webhook_chatbot}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </TabsContent>
 
