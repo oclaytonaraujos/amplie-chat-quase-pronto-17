@@ -868,13 +868,6 @@ export type Database = {
             foreignKeyName: "conversas_agente_id_fkey"
             columns: ["agente_id"]
             isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversas_agente_id_fkey"
-            columns: ["agente_id"]
-            isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
@@ -937,13 +930,6 @@ export type Database = {
             foreignKeyName: "conversas_internas_participante_1_id_fkey"
             columns: ["participante_1_id"]
             isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversas_internas_participante_1_id_fkey"
-            columns: ["participante_1_id"]
-            isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
@@ -952,13 +938,6 @@ export type Database = {
             columns: ["participante_2_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "conversas_internas_participante_2_id_fkey"
-            columns: ["participante_2_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1622,13 +1601,6 @@ export type Database = {
             columns: ["remetente_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mensagens_internas_remetente_id_fkey"
-            columns: ["remetente_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2484,13 +2456,6 @@ export type Database = {
             foreignKeyName: "transferencias_de_agente_id_fkey"
             columns: ["de_agente_id"]
             isOneToOne: false
-            referencedRelation: "safe_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transferencias_de_agente_id_fkey"
-            columns: ["de_agente_id"]
-            isOneToOne: false
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },
@@ -2499,13 +2464,6 @@ export type Database = {
             columns: ["para_agente_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "transferencias_para_agente_id_fkey"
-            columns: ["para_agente_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2832,13 +2790,6 @@ export type Database = {
             columns: ["agente_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "video_audio_calls_agente_id_fkey"
-            columns: ["agente_id"]
-            isOneToOne: false
-            referencedRelation: "safe_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3316,47 +3267,6 @@ export type Database = {
         }
         Relationships: []
       }
-      safe_profiles: {
-        Row: {
-          cargo: string | null
-          created_at: string | null
-          email: string | null
-          empresa_id: string | null
-          id: string | null
-          nome: string | null
-          setor: string | null
-          status: string | null
-        }
-        Insert: {
-          cargo?: string | null
-          created_at?: string | null
-          email?: never
-          empresa_id?: string | null
-          id?: string | null
-          nome?: string | null
-          setor?: string | null
-          status?: string | null
-        }
-        Update: {
-          cargo?: string | null
-          created_at?: string | null
-          email?: never
-          empresa_id?: string | null
-          id?: string | null
-          nome?: string | null
-          setor?: string | null
-          status?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       usuarios: {
         Row: {
           empresa_id: string | null
@@ -3390,8 +3300,8 @@ export type Database = {
         Args: { p_agente_id: string; p_conversa_id: string }
         Returns: boolean
       }
-      can_access_profile: {
-        Args: { profile_id: string }
+      check_user_is_super_admin: {
+        Args: { user_id: string }
         Returns: boolean
       }
       cleanup_evolution_api_logs: {
@@ -3489,10 +3399,6 @@ export type Database = {
       invoke_chatbot_queue_processor: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      is_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
       }
       obter_agentes_disponiveis: {
         Args: { p_empresa_id: string; p_setor_preferido?: string }
