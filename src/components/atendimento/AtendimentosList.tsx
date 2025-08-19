@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AtendimentoCard } from './AtendimentoCard';
 import { useAtendimento } from '@/hooks/useAtendimento';
-import { Loader2 } from 'lucide-react';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface Atendimento {
   id: string;
@@ -67,10 +67,7 @@ export function AtendimentosList({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando atendimentos...</p>
-        </div>
+        <SyncLoaderSection text="Carregando atendimentos..." />
       </div>
     );
   }

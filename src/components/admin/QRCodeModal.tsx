@@ -1,4 +1,5 @@
 import React from 'react';
+import { SyncLoader } from '@/components/ui/sync-loader';
 import {
   Dialog,
   DialogContent,
@@ -56,7 +57,7 @@ export function QRCodeModal({
             <div className="flex flex-col items-center justify-center w-64 h-64 bg-muted rounded-lg border-2 border-dashed">
               {isLoading ? (
                 <>
-                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin text-muted-foreground mb-2" />
+                  <SyncLoader size="lg" className="mb-2" />
                   <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
                 </>
               ) : (

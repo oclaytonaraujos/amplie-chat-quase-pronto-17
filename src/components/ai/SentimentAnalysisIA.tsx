@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Brain, MessageSquare, TrendingUp, AlertTriangle, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Brain, MessageSquare, TrendingUp, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface AIAssistantQuery {
   id: string;
@@ -172,7 +173,7 @@ export function SentimentAnalysisIA() {
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <SyncLoaderInline />
                 Processando...
               </>
             ) : (

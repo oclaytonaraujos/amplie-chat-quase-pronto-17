@@ -8,6 +8,7 @@ import { AlertTriangle, Shield, Lock, Activity, Download, RefreshCw } from 'luci
 import { useSecurityMonitor, SecurityEvent, SecurityMetrics } from '@/utils/security-monitor';
 import { useBackupSystem, BackupMetadata } from '@/utils/backup-system';
 import { toast } from '@/hooks/use-toast';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 export function SecurityDashboard() {
   const [securityMetrics, setSecurityMetrics] = useState<SecurityMetrics | null>(null);
@@ -85,7 +86,7 @@ export function SecurityDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <RefreshCw className="w-6 h-6 animate-spin" />
+        <SyncLoaderSection text="Carregando dados de segurança..." />
       </div>
     );
   }

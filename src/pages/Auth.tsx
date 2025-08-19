@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 
 export default function Auth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -331,7 +332,7 @@ export default function Auth() {
             <Button type="submit" className="w-full" disabled={isLoading || loading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <SyncLoaderInline />
                   {isSignUp ? 'Criando conta...' : 'Entrando...'}
                 </>
               ) : (

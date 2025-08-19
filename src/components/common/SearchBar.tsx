@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useDebounce } from '@/hooks/useDebounce';
+import { SyncLoader } from '@/components/ui/sync-loader';
 
 interface SearchResult {
   id: string;
@@ -278,7 +279,7 @@ export function SearchBar({
         >
           {isLoading ? (
             <div className="p-4 text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto" />
+              <SyncLoader size="md" />
               <p className="text-sm text-muted-foreground mt-2">Buscando...</p>
             </div>
           ) : filteredResults.length > 0 ? (

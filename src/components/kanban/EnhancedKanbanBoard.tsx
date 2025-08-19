@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { AccessRequestDialog } from './AccessRequestDialog';
 import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { useAtendimentoReal } from '@/hooks/useAtendimentoReal';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface Conversa {
   id: string;
@@ -207,8 +208,7 @@ export function EnhancedKanbanBoard({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <RefreshCw className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Carregando conversas...</span>
+        <SyncLoaderSection text="Carregando conversas..." />
       </div>
     );
   }

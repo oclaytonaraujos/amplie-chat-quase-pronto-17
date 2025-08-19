@@ -2,7 +2,8 @@ import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { WhatsAppMessage } from './whatsapp/WhatsAppMessage';
 import { MessageStatusIndicator, MessageRetryButton } from './MessageStatusIndicator';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -166,7 +167,7 @@ export function OptimizedMessagesList({
       {/* Indicador de carregamento no topo */}
       {isLoadingMore && (
         <div className="flex items-center justify-center py-2 border-b">
-          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          <SyncLoaderInline />
           <span className="text-sm text-muted-foreground">
             Carregando mensagens antigas...
           </span>

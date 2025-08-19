@@ -682,7 +682,7 @@ export default function ApiKeysConfig() {
               <Button onClick={salvarApiKey} disabled={salvando} className="flex-1">
                 {salvando ? (
                   <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    <SyncLoaderInline />
                     Salvando...
                   </>
                 ) : (

@@ -126,7 +126,7 @@ export default function QueueMonitoring() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'pending': return <Clock className="h-4 w-4" />;
-      case 'processing': return <Activity className="h-4 w-4 animate-spin" />;
+      case 'processing': return <div className="flex items-center"><SyncLoaderInline size="sm" /></div>;
       case 'completed': return <CheckCircle className="h-4 w-4" />;
       case 'failed': return <AlertCircle className="h-4 w-4" />;
       case 'retrying': return <RefreshCw className="h-4 w-4" />;

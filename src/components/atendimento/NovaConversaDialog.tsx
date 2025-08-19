@@ -3,7 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Phone, MessageSquare, Loader2 } from 'lucide-react';
+import { Phone, MessageSquare } from 'lucide-react';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -220,7 +221,7 @@ export function NovaConversaDialog({ open, onOpenChange, onConversaCriada }: Nov
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <SyncLoaderInline />
                   Criando...
                 </>
               ) : (

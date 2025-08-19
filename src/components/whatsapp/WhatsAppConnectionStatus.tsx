@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Wifi, WifiOff, RefreshCw, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SyncLoader } from '@/components/ui/sync-loader';
+import { Wifi, WifiOff, RefreshCw, AlertTriangle } from 'lucide-react';
 
 interface WhatsAppConnectionStatusProps {
   instanceId?: string;
@@ -38,7 +39,7 @@ export const WhatsAppConnectionStatus: React.FC<WhatsAppConnectionStatusProps> =
           disabled={isChecking}
           className="h-6 w-6 p-0"
         >
-          <RefreshCw className={cn("w-3 h-3", isChecking && "animate-spin")} />
+          <SyncLoader size="sm" className={cn(!isChecking && "hidden")} />
         </Button>
       </div>
     );

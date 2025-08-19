@@ -2,7 +2,8 @@
  * Sistema de Exportação de Dados em múltiplos formatos
  */
 import React, { useState } from 'react';
-import { Download, FileText, Table, FileSpreadsheet, Loader2 } from 'lucide-react';
+import { Download, FileText, Table, FileSpreadsheet } from 'lucide-react';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -249,7 +250,7 @@ export function DataExport({ data, formats = ['pdf', 'excel', 'csv'], className 
         >
           {isExporting ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <SyncLoaderInline />
               Exportando...
             </>
           ) : (

@@ -1,4 +1,5 @@
 
+import { SyncLoader } from '@/components/ui/sync-loader';
 import React from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -101,7 +102,7 @@ export function WhatsAppMessage({
     
     switch (status) {
       case 'enviando':
-        return <div className="w-3 h-3 border border-gray-400 rounded-full animate-spin" />;
+        return <SyncLoader size="sm" />;
       case 'enviado':
         return <Check className="w-3 h-3 text-gray-400" />;
       case 'entregue':
