@@ -85,8 +85,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Aguardar criação automática do perfil pelo trigger
-  const waitForProfileCreation = async (userId: string, maxAttempts = 10): Promise<Profile | null> => {
+  // Aguardar criação automática do perfil pelo trigger (com timeout mais rápido)
+  const waitForProfileCreation = async (userId: string, maxAttempts = 6): Promise<Profile | null> => {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       logger.info(`Tentativa ${attempt} de carregar perfil criado automaticamente`, { userId });
       
@@ -104,7 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (attempt < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 500 * attempt)); // Delay exponencial
+        await new Promise(resolve => setTimeout(resolve, 200 * attempt)); // Delay menor e mais rápido
       }
     }
 
@@ -204,12 +204,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = profile?.cargo === 'admin' || profile?.cargo === 'super_admin';
   const isSuperAdmin = profile?.cargo === 'super_admin';
 
-  // Gerenciar estado da sessão
+  // Gerenciar estado da sessão (otimizado)
   useEffect(() => {
+    let mounted = true;
+
     // Obter sessão inicial
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
         
         if (error) {
           logger.error('Erro ao obter sessão inicial', {}, error);
@@ -221,59 +225,107 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setUser(session.user);
           
-          // Carregar perfil (será criado automaticamente pelo trigger se não existir)
+          // Carregar perfil de forma otimizada
           const existingProfile = await loadProfile(session.user.id);
-          if (!existingProfile) {
-            // Aguardar criação automática pelo trigger
-            await waitForProfileCreation(session.user.id);
+          if (!existingProfile && mounted) {
+            // Criar perfil imediatamente se não existir
+            try {
+              const { data: newProfile, error: createError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: session.user.id,
+                  nome: session.user.email?.split('@')[0] || 'Usuário',
+                  email: session.user.email || '',
+                  cargo: 'usuario',
+                  setor: 'Geral',
+                  status: 'online'
+                })
+                .select()
+                .single();
+
+              if (!createError && newProfile && mounted) {
+                const profile = convertToProfile(newProfile);
+                setProfile(profile);
+              } else if (mounted) {
+                // Fallback para aguardar trigger
+                await waitForProfileCreation(session.user.id);
+              }
+            } catch (insertError) {
+              // Se falhar, aguardar trigger
+              if (mounted) {
+                await waitForProfileCreation(session.user.id);
+              }
+            }
           }
         }
       } catch (error) {
-        logger.error('Erro inesperado ao obter sessão', {}, error as Error);
+        if (mounted) {
+          logger.error('Erro inesperado ao obter sessão', {}, error as Error);
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     getInitialSession();
 
-    // Escutar mudanças na autenticação
+    // Escutar mudanças na autenticação (otimizado)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
+        
         logger.info('Auth state changed');
         
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Carregar perfil primeiro
+          // Carregar perfil de forma mais rápida
           const existingProfile = await loadProfile(session.user.id);
-          let finalProfile = existingProfile;
           
-          if (!finalProfile) {
-            // Aguardar criação automática pelo trigger
-            finalProfile = await waitForProfileCreation(session.user.id);
-          }
+          if (!existingProfile && mounted) {
+            // Tentar criar perfil direto primeiro
+            try {
+              const { data: newProfile, error: createError } = await supabase
+                .from('profiles')
+                .insert({
+                  id: session.user.id,
+                  nome: session.user.email?.split('@')[0] || 'Usuário',
+                  email: session.user.email || '',
+                  cargo: 'usuario',
+                  setor: 'Geral',
+                  status: 'online'
+                })
+                .select()
+                .single();
 
-          // Atualizar status para online após perfil estar carregado
-          if (finalProfile) {
-            await supabase
-              .from('profiles')
-              .update({ 
-                status: 'online',
-                last_login_at: new Date().toISOString()
-              })
-              .eq('id', session.user.id);
+              if (!createError && newProfile && mounted) {
+                const profile = convertToProfile(newProfile);
+                setProfile(profile);
+              }
+            } catch (insertError) {
+              // Fallback para aguardar trigger
+              if (mounted) {
+                await waitForProfileCreation(session.user.id);
+              }
+            }
           }
         } else {
           setProfile(null);
         }
 
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Real-time subscription para mudanças no perfil

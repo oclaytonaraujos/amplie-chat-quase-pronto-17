@@ -16,9 +16,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Verificando autenticação...</p>
-          <p className="text-xs text-muted-foreground mt-2">Path: {location.pathname}</p>
+          <Loader2 className="h-6 w-6 animate-spin mx-auto mb-3 text-primary" />
+          <p className="text-sm text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );

@@ -22,35 +22,36 @@ export function useUserRole() {
       }
 
       try {
-        // Use the non-recursive is_user_super_admin function
-        const { data: isSuperAdmin, error: superAdminError } = await supabase
-          .rpc('is_user_super_admin');
+        // Primeiro tenta buscar o cargo diretamente com timeout
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('timeout')), 3000)
+        );
 
-        if (superAdminError) {
-          console.error('Erro ao verificar super admin:', superAdminError);
-        } else if (isSuperAdmin) {
-          setRole('super_admin');
-          setLoading(false);
-          return;
-        }
-
-        // If not super admin, try to get role directly
-        const { data, error } = await supabase
+        const profilePromise = supabase
           .from('profiles')
           .select('cargo')
           .eq('id', user.id)
           .single();
 
+        const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any;
+
         if (error) {
-          console.error('Erro ao buscar cargo do usuário:', error);
-          
-          // Se não encontrou o perfil, aguardar um pouco e tentar novamente
-          if (error.code === 'PGRST116') {
-            setTimeout(fetchUserRole, 1000);
-            return;
+          // Se erro de timeout ou não encontrado, usar função RPC
+          if (error.message === 'timeout' || error.code === 'PGRST116') {
+            const { data: isSuperAdmin, error: rpcError } = await supabase
+              .rpc('is_user_super_admin');
+
+            if (!rpcError && isSuperAdmin) {
+              setRole('super_admin');
+            } else {
+              // Aguardar um pouco e tentar novamente
+              setTimeout(fetchUserRole, 1000);
+              return;
+            }
+          } else {
+            console.error('Erro ao buscar cargo do usuário:', error);
+            setRole(null);
           }
-          
-          setRole(null);
         } else {
           setRole(data?.cargo || null);
         }
