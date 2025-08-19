@@ -1,4 +1,4 @@
-import { SimplifiedN8nService } from '@/services/SimplifiedN8nService';
+import { UnifiedWebhookService } from '@/services/UnifiedWebhookService';
 
-// Serviço legado - usar SimplifiedN8nService
-export const N8nService = SimplifiedN8nService;
+// Serviço legado - usar UnifiedWebhookService
+export const N8nService = UnifiedWebhookService;

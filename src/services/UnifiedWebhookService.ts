@@ -16,17 +16,32 @@ export class UnifiedWebhookService {
   static async setWebhookConfig(empresaId: string, config: Partial<WebhookConfig>) {
     try {
       const { data, error } = await supabase
-        .from('unified_webhook_configs')
+        .from('webhooks')
         .upsert({
           empresa_id: empresaId,
-          ...config,
+          nome: 'Webhook Unificado',
+          url: config.webhook_url || '',
+          eventos: config.events || [],
+          ativo: config.enabled || false,
+          headers: config.headers || {},
           updated_at: new Date().toISOString()
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      
+      // Mapear para o formato esperado
+      return {
+        id: data.id,
+        empresa_id: data.empresa_id,
+        webhook_url: data.url,
+        enabled: data.ativo,
+        events: data.eventos || [],
+        headers: typeof data.headers === 'object' ? data.headers as Record<string, string> : {},
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
     } catch (error) {
       console.error('Erro ao configurar webhook:', error);
       throw error;
@@ -37,13 +52,27 @@ export class UnifiedWebhookService {
   static async getWebhookConfig(empresaId: string): Promise<WebhookConfig | null> {
     try {
       const { data, error } = await supabase
-        .from('unified_webhook_configs')
+        .from('webhooks')
         .select('*')
         .eq('empresa_id', empresaId)
-        .single();
+        .eq('nome', 'Webhook Unificado')
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
-      return data;
+      if (error) throw error;
+      
+      if (!data) return null;
+      
+      // Mapear para o formato esperado
+      return {
+        id: data.id,
+        empresa_id: data.empresa_id,
+        webhook_url: data.url,
+        enabled: data.ativo,
+        events: data.eventos || [],
+        headers: typeof data.headers === 'object' ? data.headers as Record<string, string> : {},
+        created_at: data.created_at,
+        updated_at: data.updated_at
+      };
     } catch (error) {
       console.error('Erro ao buscar configuração:', error);
       return null;
@@ -135,14 +164,16 @@ export class UnifiedWebhookService {
   ) {
     try {
       await supabase
-        .from('webhook_delivery_logs')
+        .from('evolution_api_logs')
         .insert({
-          empresa_id: empresaId,
+          instance_name: 'webhook_unified',
           event_type: eventType,
-          payload,
-          success,
-          error_message: errorMessage,
-          delivered_at: new Date().toISOString()
+          success: success,
+          error_message: errorMessage || null,
+          event_data: {
+            payload,
+            delivered_at: new Date().toISOString()
+          }
         });
     } catch (error) {
       console.error('Erro ao registrar log de webhook:', error);
@@ -170,14 +201,22 @@ export class UnifiedWebhookService {
   static async getDeliveryLogs(empresaId: string, limit: number = 50) {
     try {
       const { data, error } = await supabase
-        .from('webhook_delivery_logs')
+        .from('evolution_api_logs')
         .select('*')
-        .eq('empresa_id', empresaId)
-        .order('delivered_at', { ascending: false })
+        .eq('instance_name', 'webhook_unified')
+        .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
-      return data || [];
+      
+      // Mapear para o formato esperado
+      return (data || []).map(log => ({
+        event_type: log.event_type,
+        success: log.success,
+        delivered_at: log.created_at,
+        error_message: log.error_message || null,
+        payload: typeof log.event_data === 'object' ? log.event_data : {}
+      }));
     } catch (error) {
       console.error('Erro ao buscar logs:', error);
       return [];

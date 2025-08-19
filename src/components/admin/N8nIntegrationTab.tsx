@@ -1,6 +1,6 @@
 import React from 'react';
-import { SimplifiedN8nConfig } from './SimplifiedN8nConfig';
+import { SimpleWebhookConfig } from './SimpleWebhookConfig';
 
 export function N8nIntegrationTab() {
-  return <SimplifiedN8nConfig />;
+  return <SimpleWebhookConfig />;
 }

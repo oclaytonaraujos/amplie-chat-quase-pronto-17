@@ -19,17 +19,22 @@ export function IntegrationsDashboard() {
     events_count: config?.events?.length || 0
   };
 
+  // Verificar quais eventos estão habilitados
+  const hasMessageEvents = config?.events?.includes('message') || false;
+  const hasInstanceEvents = config?.events?.includes('instance') || false;
+  const hasChatbotEvents = config?.events?.includes('chatbot') || false;
+
   const integrations = [
     {
-      id: 'n8n',
-      name: 'n8n Middleware',
-      description: 'Sistema centralizado de automação e processamento',
+      id: 'unified',
+      name: 'Webhook Unificado',
+      description: 'Sistema centralizado de webhooks',
       icon: Server,
       status: status.overall_enabled ? 'active' : 'inactive',
       components: [
-        { name: 'Envio', enabled: status.send_messages_enabled },
-        { name: 'Recebimento', enabled: status.receive_messages_enabled },
-        { name: 'Instâncias', enabled: status.instances_enabled }
+        { name: 'Mensagens', enabled: hasMessageEvents },
+        { name: 'Instâncias', enabled: hasInstanceEvents },
+        { name: 'Chatbot', enabled: hasChatbotEvents }
       ]
     },
     {
@@ -49,11 +54,11 @@ export function IntegrationsDashboard() {
       name: 'Sistema de Chatbot',
       description: 'Automação de atendimento via IA',
       icon: Bot,
-      status: status.chatbot_enabled ? 'active' : 'inactive',
+      status: hasChatbotEvents ? 'active' : 'inactive',
       components: [
-        { name: 'Fluxos', enabled: status.chatbot_enabled },
-        { name: 'Processamento', enabled: status.chatbot_enabled },
-        { name: 'Transferências', enabled: status.chatbot_enabled }
+        { name: 'Fluxos', enabled: hasChatbotEvents },
+        { name: 'Processamento', enabled: hasChatbotEvents },
+        { name: 'Transferências', enabled: hasChatbotEvents }
       ]
     }
   ];
@@ -82,8 +87,7 @@ export function IntegrationsDashboard() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="n8n">Configurar n8n</TabsTrigger>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
+          <TabsTrigger value="unified">Configurar Webhook</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
 
@@ -112,10 +116,10 @@ export function IntegrationsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {[status.send_messages_enabled, status.receive_messages_enabled, status.instances_enabled, status.chatbot_enabled].filter(Boolean).length}/4
+                  {status.events_count}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Webhooks configurados
+                  Eventos configurados
                 </p>
               </CardContent>
             </Card>
@@ -127,10 +131,10 @@ export function IntegrationsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-sm">
-                  <Badge variant="outline" className="bg-green-50">Simplificada</Badge>
+                  <Badge variant="outline" className="bg-green-50">Unificada</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  n8n como middleware
+                  Webhook único
                 </p>
               </CardContent>
             </Card>
@@ -162,15 +166,15 @@ export function IntegrationsDashboard() {
                       ))}
                     </div>
 
-                    {integration.id === 'n8n' && (
+                    {integration.id === 'unified' && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => setActiveTab('n8n')}
+                        onClick={() => setActiveTab('unified')}
                       >
                         <Settings className="h-4 w-4 mr-2" />
-                        Configurar n8n
+                        Configurar Webhook
                       </Button>
                     )}
                   </CardContent>
@@ -182,9 +186,9 @@ export function IntegrationsDashboard() {
           {/* Architecture Diagram */}
           <Card>
             <CardHeader>
-              <CardTitle>Fluxo de Dados Simplificado</CardTitle>
+              <CardTitle>Arquitetura Unificada</CardTitle>
               <CardDescription>
-                Como os dados fluem através do sistema usando n8n como middleware
+                Como o sistema funciona com webhook único
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -194,27 +198,17 @@ export function IntegrationsDashboard() {
                     <MessageSquare className="h-6 w-6" />
                   </div>
                   <p className="text-sm font-medium">Sistema</p>
-                  <p className="text-xs text-muted-foreground">Envia dados</p>
+                  <p className="text-xs text-muted-foreground">Gera evento</p>
                 </div>
                 
                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
                 
                 <div className="text-center">
                   <div className="w-12 h-12 bg-green-500 text-white rounded-lg flex items-center justify-center mb-2">
-                    <Server className="h-6 w-6" />
-                  </div>
-                  <p className="text-sm font-medium">n8n</p>
-                  <p className="text-xs text-muted-foreground">Processa</p>
-                </div>
-                
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-purple-500 text-white rounded-lg flex items-center justify-center mb-2">
                     <Zap className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-medium">Evolution API</p>
-                  <p className="text-xs text-muted-foreground">Executa</p>
+                  <p className="text-sm font-medium">Webhook</p>
+                  <p className="text-xs text-muted-foreground">Processa</p>
                 </div>
                 
                 <ArrowRight className="h-5 w-5 text-muted-foreground" />
@@ -223,8 +217,8 @@ export function IntegrationsDashboard() {
                   <div className="w-12 h-12 bg-orange-500 text-white rounded-lg flex items-center justify-center mb-2">
                     <CheckCircle className="h-6 w-6" />
                   </div>
-                  <p className="text-sm font-medium">Retorno</p>
-                  <p className="text-xs text-muted-foreground">Atualiza sistema</p>
+                  <p className="text-sm font-medium">Resposta</p>
+                  <p className="text-xs text-muted-foreground">Confirma</p>
                 </div>
               </div>
             </CardContent>
@@ -235,45 +229,6 @@ export function IntegrationsDashboard() {
           <SimpleWebhookConfig />
         </TabsContent>
 
-        <TabsContent value="webhooks" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>URLs de Webhook Configuradas</CardTitle>
-              <CardDescription>
-                Estas são as URLs que o sistema usa para se comunicar com o n8n
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <h4 className="font-medium">Webhook para Envio</h4>
-                <Badge variant={status.send_messages_enabled ? "default" : "secondary"}>
-                  {status.send_messages_enabled ? 'Configurado' : 'Não configurado'}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Webhook para Recebimento</h4>
-                <Badge variant={status.receive_messages_enabled ? "default" : "secondary"}>
-                  {status.receive_messages_enabled ? 'Configurado' : 'Não configurado'}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Webhook de Instâncias</h4>
-                <Badge variant={status.instances_enabled ? "default" : "secondary"}>
-                  {status.instances_enabled ? 'Configurado' : 'Não configurado'}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">Webhook de Chatbot</h4>
-                <Badge variant={status.chatbot_enabled ? "default" : "secondary"}>
-                  {status.chatbot_enabled ? 'Configurado' : 'Não configurado'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="logs" className="space-y-6">
           <Card>

@@ -2564,6 +2564,39 @@ export type Database = {
           },
         ]
       }
+      unified_webhook_configs: {
+        Row: {
+          created_at: string
+          empresa_id: string
+          enabled: boolean
+          events: string[]
+          headers: Json | null
+          id: string
+          updated_at: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          empresa_id: string
+          enabled?: boolean
+          events?: string[]
+          headers?: Json | null
+          id?: string
+          updated_at?: string
+          webhook_url: string
+        }
+        Update: {
+          created_at?: string
+          empresa_id?: string
+          enabled?: boolean
+          events?: string[]
+          headers?: Json | null
+          id?: string
+          updated_at?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
       user_appearance_settings: {
         Row: {
           animations: boolean
