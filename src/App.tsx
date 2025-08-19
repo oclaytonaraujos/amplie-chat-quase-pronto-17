@@ -26,6 +26,7 @@ import { Layout } from "@/components/layout/Layout";
 import { GlobalErrorBoundary } from "@/components/GlobalErrorBoundary";
 
 // Páginas - todas lazy loaded
+const TestPage = lazy(() => import("@/pages/TestPage").then(m => ({ default: m.default })));
 const Auth = lazy(() => import("@/pages/Auth").then(m => ({ default: m.default })));
 const SuperAdmin = lazy(() => import("@/pages/SuperAdmin").then(m => ({ default: m.default })));
 const Painel = lazy(() => import("@/pages/Painel").then(m => ({ default: m.default })));
@@ -126,6 +127,16 @@ function AppRoutes() {
             <SuperAdmin />
           </ProtectedRoute>
         </Suspense>
+      } />
+      
+      <Route path="/test" element={
+        <ProtectedRoute>
+          <Layout title="Teste" description="Página de teste">
+            <Suspense fallback={<PageContentFallback />}>
+              <TestPage />
+            </Suspense>
+          </Layout>
+        </ProtectedRoute>
       } />
       
       <Route path="/painel" element={

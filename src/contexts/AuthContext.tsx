@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
-  // Carregar perfil do usuário
+  // Carregar perfil do usuário (simplificado)
   const loadProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
@@ -71,6 +71,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!data) {
+        // Tentar criar perfil automaticamente
+        const userEmail = user?.email || '';
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            nome: userEmail.split('@')[0] || 'Usuário',
+            email: userEmail,
+            cargo: userEmail === 'ampliemarketing.mkt@gmail.com' ? 'super_admin' : 'usuario',
+            setor: 'Geral',
+            status: 'online'
+          })
+          .select()
+          .single();
+
+        if (!createError && newProfile) {
+          logger.info('Perfil criado automaticamente');
+          const profile = convertToProfile(newProfile);
+          setProfile(profile);
+          return profile;
+        }
+        
         logger.info('Perfil não encontrado, será criado automaticamente pelo trigger');
         return null;
       }

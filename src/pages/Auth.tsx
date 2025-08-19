@@ -329,23 +329,29 @@ export default function Auth() {
           {!isSignUp && (window.location.hostname === 'localhost' || window.location.hostname.includes('.lovable.app')) && (
             <div className="mt-4 text-center space-y-2 p-3 bg-orange-50 border border-orange-200 rounded">
               <p className="text-xs text-orange-700 font-medium">🔧 Ferramentas de Desenvolvimento</p>
-              <button
-                type="button"
-                onClick={fillSuperAdminCredentials}
-                className="text-xs text-gray-600 hover:text-gray-700 underline block w-full"
-                disabled={isLoading}
-              >
-                Preencher credenciais de super admin
-              </button>
-              
-              <button
-                type="button"
-                onClick={createSuperAdmin}
-                className="text-xs text-blue-600 hover:text-blue-500 underline block w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Criando...' : 'Criar super admin automaticamente'}
-              </button>
+              <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={fillSuperAdminCredentials}
+                  className="text-xs text-gray-600 hover:text-gray-700 underline block w-full"
+                  disabled={isLoading}
+                >
+                  Preencher credenciais de super admin
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setEmail('ampliemarketing.mkt@gmail.com');
+                    setPassword('Amplie123@');
+                    await handleSignIn({ preventDefault: () => {} } as any);
+                  }}
+                  className="text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 block w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Entrando...' : 'Login Automático Super Admin'}
+                </button>
+              </div>
               
               <p className="text-xs text-orange-600 mt-2">
                 ⚠️ Estas opções são removidas automaticamente em produção
