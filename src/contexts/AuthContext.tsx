@@ -209,38 +209,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Obter sessão inicial
     const getInitialSession = async () => {
       try {
-        console.log('[AuthContext] Obtendo sessão inicial...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('[AuthContext] Erro ao obter sessão inicial:', error);
           logger.error('Erro ao obter sessão inicial', {}, error);
           setLoading(false);
           return;
         }
 
-        console.log('[AuthContext] Sessão obtida:', { hasSession: !!session, userEmail: session?.user?.email });
-
         if (session) {
           setSession(session);
           setUser(session.user);
           
-          console.log('[AuthContext] Carregando perfil do usuário...');
           // Carregar perfil (será criado automaticamente pelo trigger se não existir)
           const existingProfile = await loadProfile(session.user.id);
           if (!existingProfile) {
-            console.log('[AuthContext] Perfil não encontrado, aguardando criação automática...');
             // Aguardar criação automática pelo trigger
             await waitForProfileCreation(session.user.id);
           }
-        } else {
-          console.log('[AuthContext] Nenhuma sessão ativa encontrada');
         }
       } catch (error) {
-        console.error('[AuthContext] Erro inesperado ao obter sessão:', error);
         logger.error('Erro inesperado ao obter sessão', {}, error as Error);
       } finally {
-        console.log('[AuthContext] Finalizando carregamento inicial');
         setLoading(false);
       }
     };

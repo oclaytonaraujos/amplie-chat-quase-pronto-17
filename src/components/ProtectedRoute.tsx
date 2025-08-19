@@ -12,17 +12,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
 
-  // Log temporário para diagnóstico
-  console.log('[ProtectedRoute] Estado atual:', { 
-    loading, 
-    hasUser: !!user, 
-    userEmail: user?.email,
-    currentPath: location.pathname,
-    timestamp: new Date().toISOString()
-  });
-
   if (loading) {
-    console.log('[ProtectedRoute] Mostrando tela de carregamento...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -35,10 +25,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    console.log('[ProtectedRoute] Usuário não autenticado, redirecionando para /auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
-
-  console.log('[ProtectedRoute] Usuário autenticado, renderizando conteúdo protegido');
   return <>{children}</>;
 };

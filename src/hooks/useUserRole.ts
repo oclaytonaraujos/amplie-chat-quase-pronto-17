@@ -16,15 +16,12 @@ export function useUserRole() {
       }
 
       if (!user) {
-        console.log('Usuário não autenticado, limpando role');
         setRole(null);
         setLoading(false);
         return;
       }
 
       try {
-        console.log('Buscando role para usuário:', user.email);
-        
         const { data, error } = await supabase
           .from('profiles')
           .select('cargo')
@@ -36,20 +33,13 @@ export function useUserRole() {
           
           // Se não encontrou o perfil, aguardar um pouco e tentar novamente
           if (error.code === 'PGRST116') {
-            console.log('Perfil não encontrado, tentando novamente em 1 segundo...');
             setTimeout(fetchUserRole, 1000);
             return;
           }
           
           setRole(null);
         } else {
-          console.log('Cargo encontrado:', data?.cargo);
           setRole(data?.cargo || null);
-          
-          // Log especial para super admin
-          if (data?.cargo === 'super_admin') {
-            console.log('✅ Confirmado: Usuário é Super Admin -', user.email);
-          }
         }
       } catch (error) {
         console.error('Erro inesperado ao buscar cargo:', error);
@@ -59,13 +49,10 @@ export function useUserRole() {
       }
     }
 
-    console.log('useUserRole: fetchUserRole executando', { user: !!user, authLoading });
     fetchUserRole();
   }, [user, authLoading]);
 
-  console.log('useUserRole: retornando', { role, loading: authLoading || loading, isSuperAdmin: role === 'super_admin' });
-  
-  return { 
+  return {
     role, 
     loading: authLoading || loading,
     isSuperAdmin: role === 'super_admin',

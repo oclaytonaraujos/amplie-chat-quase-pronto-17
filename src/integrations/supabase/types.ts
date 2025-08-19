@@ -3400,6 +3400,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      is_user_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       obter_agentes_disponiveis: {
         Args: { p_empresa_id: string; p_setor_preferido?: string }
         Returns: {
