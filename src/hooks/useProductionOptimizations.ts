@@ -4,7 +4,7 @@
 
 import { useEffect, useCallback, useRef } from 'react';
 import { initProductionOptimizations } from '@/utils/production-optimizations';
-import { initCodeSplitting } from '@/utils/code-splitting';
+// Code splitting functionality inline
 
 interface ProductionState {
   isOptimized: boolean;
@@ -29,7 +29,6 @@ export const useProductionOptimizations = () => {
       
       // Inicializar otimizações
       initProductionOptimizations();
-      initCodeSplitting();
       
       // Marcar como otimizado
       metricsRef.current.isOptimized = true;

@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageSquare, Clock, User, Tag } from 'lucide-react';
 import { VirtualScroll } from '@/components/ui/virtual-scroll';
 import { useAtendimentoReal } from '@/hooks/useAtendimentoReal';
-import { useComponentPerformance } from '@/components/layout/PerformanceOptimizedLayout';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface Conversa {
   id: string;
@@ -171,7 +171,13 @@ export const OptimizedAtendimentosList = memo(({
   isMobile = false 
 }: OptimizedAtendimentosListProps) => {
   const { conversas, loading } = useAtendimentoReal();
-  const optimizations = useComponentPerformance('OptimizedAtendimentosList');
+  const isMobileDevice = useIsMobile();
+  
+  // Performance optimizations based on device
+  const optimizations = {
+    pageSize: isMobileDevice ? 20 : 50,
+    shouldLazyLoad: isMobileDevice
+  };
 
   // Memoizar conversas ativas para evitar re-computação desnecessária
   const conversasAtivas = useMemo(() => 

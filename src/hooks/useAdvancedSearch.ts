@@ -2,7 +2,7 @@
  * Hook para busca universal avançada
  */
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useOptimizedDebounce } from './usePerformanceOptimizations';
+import { useOptimizedDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SearchResult {

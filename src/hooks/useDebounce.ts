@@ -1,20 +1,27 @@
-/**
- * Hook para debounce de valores
- */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-export function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+export function useOptimizedDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
-    const handler = setTimeout(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
       setDebouncedValue(value);
     }, delay);
 
     return () => {
-      clearTimeout(handler);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [value, delay]);
 
   return debouncedValue;
 }
+
+// Alias for backward compatibility
+export const useDebounce = useOptimizedDebounce;

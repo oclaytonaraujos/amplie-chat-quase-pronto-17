@@ -2,7 +2,24 @@
  * Hook para monitoramento de performance em tempo real
  */
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { useThrottle } from '@/hooks/usePerformanceOptimizations';
+// Throttle implementation
+const useThrottle = <T>(value: T, limit: number) => {
+  const [throttledValue, setThrottledValue] = useState(value);
+  const lastRan = useRef(Date.now());
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (Date.now() - lastRan.current >= limit) {
+        setThrottledValue(value);
+        lastRan.current = Date.now();
+      }
+    }, limit - (Date.now() - lastRan.current));
+
+    return () => clearTimeout(handler);
+  }, [value, limit]);
+
+  return throttledValue;
+};
 
 interface PerformanceMetrics {
   // Métricas de renderização
