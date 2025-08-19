@@ -321,7 +321,7 @@ const App = () => {
           <WhatsAppConnectionProvider>
             <ThemeProvider>
               <ConnectionNotificationProvider>
-              <AdminAuthProvider>
+                <AdminAuthProvider>
                 <Suspense fallback={<FullScreenFallback />}>
                   <TooltipProvider>
                     <Toaster />
