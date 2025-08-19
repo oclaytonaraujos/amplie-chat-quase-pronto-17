@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { MessageQueue } from '../_shared/queue.ts'
 import { createLogger } from '../_shared/logger.ts'
 
+// Refatoração da Edge Function para ser mais modular e eficiente
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -11,9 +12,157 @@ const corsHeaders = {
 interface EvolutionApiWebhookData {
   event: string;
   instance: string;
-  data: any; // Dados flexíveis para diferentes tipos de eventos
+  data: any;
   destination?: string;
   source?: string;
+}
+
+// Processadores modulares por tipo de evento
+class WebhookProcessor {
+  constructor(
+    private supabase: any,
+    private logger: any,
+    private messageQueue: MessageQueue
+  ) {}
+
+  async processSystemEvent(payload: EvolutionApiWebhookData): Promise<any> {
+    const { event, instance, data } = payload;
+    
+    await this.logger.info(`Processing system event: ${event}`, instance, 'system_event', {
+      event, instance, timestamp: new Date().toISOString()
+    });
+
+    const updateData: any = {};
+    
+    switch (event) {
+      case 'QRCODE_UPDATED':
+        await this.handleQRCodeUpdate(data, updateData);
+        break;
+      case 'CONNECTION_UPDATE':
+        await this.handleConnectionUpdate(data, updateData);
+        break;
+      case 'APPLICATION_STARTUP':
+        updateData.status = 'starting';
+        break;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      const { error } = await this.supabase
+        .from('evolution_api_config')
+        .update(updateData)
+        .eq('instance_name', instance);
+        
+      if (error) {
+        await this.logger.error('Failed to update instance', instance, 'database_error', { error });
+      } else {
+        await this.logger.info('Instance updated successfully', instance, 'instance_update', updateData);
+      }
+    }
+
+    return { success: true, message: `Event ${event} processed`, instance };
+  }
+
+  private async handleQRCodeUpdate(data: any, updateData: any): Promise<void> {
+    let qrCodeData = typeof data === 'string' ? data : data?.qrcode || data?.base64;
+    
+    if (qrCodeData) {
+      updateData.qr_code = qrCodeData.startsWith('data:image/') 
+        ? qrCodeData 
+        : `data:image/png;base64,${qrCodeData}`;
+    }
+    
+    updateData.status = 'connecting';
+    updateData.connection_state = 'CONNECTING';
+  }
+
+  private async handleConnectionUpdate(data: any, updateData: any): Promise<void> {
+    const state = data?.state || data?.connection || 'DISCONNECTED';
+    updateData.connection_state = state;
+    
+    switch (state) {
+      case 'open':
+      case 'CONNECTED':
+        updateData.status = 'open';
+        updateData.qr_code = null;
+        updateData.last_connected_at = new Date().toISOString();
+        
+        const instanceData = data?.instance || data;
+        if (instanceData?.profilePictureUrl) updateData.profile_picture_url = instanceData.profilePictureUrl;
+        if (instanceData?.profileName) updateData.profile_name = instanceData.profileName;
+        if (instanceData?.ownerJid) updateData.numero = instanceData.ownerJid.split('@')[0];
+        if (instanceData?.wuid) updateData.numero = instanceData.wuid.split('@')[0];
+        break;
+        
+      case 'close':
+      case 'DISCONNECTED':
+        updateData.status = 'close';
+        updateData.qr_code = null;
+        break;
+        
+      case 'connecting':
+      case 'CONNECTING':
+        updateData.status = 'connecting';
+        break;
+    }
+  }
+
+  async processMessageEvent(payload: EvolutionApiWebhookData): Promise<any> {
+    const { event, instance, data } = payload;
+    
+    // Filtrar mensagens próprias
+    if (event === 'MESSAGES_UPSERT' && (!data?.key || data.key.fromMe)) {
+      await this.logger.info('Message ignored - sent by system', instance, 'message_filter');
+      return { success: true, message: 'Own message ignored' };
+    }
+
+    // Enfileirar para processamento assíncrono
+    const correlationId = crypto.randomUUID();
+    const messageId = await this.messageQueue.enqueue({
+      correlationId,
+      messageType: 'whatsapp_message_received',
+      payload: { event, instance, data },
+      priority: 1,
+      metadata: {
+        source: 'evolution_api_webhook',
+        timestamp: new Date().toISOString()
+      }
+    });
+
+    await this.logger.info('Message queued for processing', instance, 'message_queue', {
+      messageId, event, correlationId
+    });
+
+    return { 
+      success: true, 
+      message: 'Message queued for processing',
+      messageId,
+      correlationId
+    };
+  }
+
+  async processDataEvent(payload: EvolutionApiWebhookData): Promise<any> {
+    const { event, instance } = payload;
+    
+    await this.logger.info(`Data event processed: ${event}`, instance, 'data_event');
+    
+    // Log para análise
+    await this.supabase
+      .from('chatbot_logs')
+      .insert({
+        function_name: 'whatsapp-webhook-evolution',
+        level: 'info',
+        message: `Event ${event} processed`,
+        correlation_id: crypto.randomUUID(),
+        metadata: {
+          event,
+          instance,
+          dataType: typeof payload.data,
+          hasData: !!payload.data
+        }
+      });
+
+    return { success: true, message: `Event ${event} registered`, instance };
+  }
 }
 
 serve(async (req) => {
@@ -22,278 +171,56 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const correlationId = crypto.randomUUID()
-    const logger = createLogger(supabase, correlationId, 'whatsapp-webhook-evolution')
-    const messageQueue = new MessageQueue(supabase, logger)
+    const correlationId = crypto.randomUUID();
+    const logger = createLogger(supabase, correlationId, 'whatsapp-webhook-evolution');
+    const messageQueue = new MessageQueue(supabase, logger);
+    const processor = new WebhookProcessor(supabase, logger, messageQueue);
 
-    const payload: EvolutionApiWebhookData = await req.json()
+    const payload: EvolutionApiWebhookData = await req.json();
     
-    await logger.info('Webhook Evolution API recebido', undefined, undefined, {
-      event: payload.event,
-      instance: payload.instance,
-      timestamp: new Date().toISOString()
-    })
+    // Mapear eventos para processadores específicos
+    const systemEvents = ['QRCODE_UPDATED', 'CONNECTION_UPDATE', 'APPLICATION_STARTUP'];
+    const messageEvents = ['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'MESSAGES_DELETE', 'SEND_MESSAGE'];
+    const dataEvents = ['CONTACTS_SET', 'CONTACTS_UPSERT', 'CONTACTS_UPDATE', 'CHATS_SET', 'CHATS_UPSERT', 'CHATS_UPDATE', 'CHATS_DELETE'];
+    const presenceEvents = ['PRESENCE_UPDATE', 'CALL', 'NEW_JWT_TOKEN'];
+    const typebotEvents = ['TYPEBOT_START', 'TYPEBOT_CHANGE_STATUS'];
 
-    // EVENTOS DE CONEXÃO E STATUS
-    if (['QRCODE_UPDATED', 'CONNECTION_UPDATE', 'APPLICATION_STARTUP'].includes(payload.event)) {
-      console.log('Evento de sistema recebido:', payload.event)
-      
-      try {
-        const updateData: any = {}
-        
-        if (payload.event === 'QRCODE_UPDATED' && payload.data) {
-          // Tratar QR Code - pode vir como string base64 ou objeto
-          let qrCodeData = typeof payload.data === 'string' ? payload.data : payload.data.qrcode || payload.data.base64;
-          
-          if (qrCodeData) {
-            // Se já é uma URL de dados, usar como está
-            if (qrCodeData.startsWith('data:image/')) {
-              updateData.qr_code = qrCodeData;
-            } else {
-              // Adicionar o prefixo data URL se necessário
-              updateData.qr_code = `data:image/png;base64,${qrCodeData}`;
-            }
-          }
-          
-          updateData.status = 'connecting'
-          updateData.connection_state = 'CONNECTING'
-          await logger.info('QR Code updated', payload.instance, 'qr_update')
-          
-        } else if (payload.event === 'CONNECTION_UPDATE') {
-          const state = payload.data?.state || payload.data?.connection || 'DISCONNECTED'
-          updateData.connection_state = state
-          
-          console.log('CONNECTION_UPDATE recebido:', { instance: payload.instance, state, data: payload.data })
-          
-          // Mapear estado correto
-          if (state === 'open' || state === 'CONNECTED') {
-            updateData.status = 'open'
-            updateData.qr_code = null
-            updateData.last_connected_at = new Date().toISOString()
-            
-            // Extrair dados do perfil - verificar todas as possíveis estruturas
-            const instanceData = payload.data?.instance || payload.data;
-            
-            if (instanceData?.profilePictureUrl) {
-              updateData.profile_picture_url = instanceData.profilePictureUrl
-            }
-            if (instanceData?.profileName) {
-              updateData.profile_name = instanceData.profileName
-            }
-            if (instanceData?.ownerJid) {
-              updateData.numero = instanceData.ownerJid.split('@')[0]
-            }
-            // Alternativa para número
-            if (instanceData?.wuid) {
-              updateData.numero = instanceData.wuid.split('@')[0]
-            }
-            
-            console.log('Instância conectada:', payload.instance, { profile: updateData.profile_name, numero: updateData.numero })
-            
-          } else if (state === 'close' || state === 'DISCONNECTED') {
-            updateData.status = 'close'
-            updateData.qr_code = null
-            console.log('Instância desconectada:', payload.instance)
-          } else if (state === 'connecting' || state === 'CONNECTING') {
-            updateData.status = 'connecting'
-            console.log('Instância conectando:', payload.instance)
-          }
-          
-        } else if (payload.event === 'APPLICATION_STARTUP') {
-          console.log('Aplicação Evolution API iniciada para instância:', payload.instance)
-          updateData.status = 'starting'
-        }
-        
-        if (Object.keys(updateData).length > 0) {
-          const { error: updateError } = await supabase
-            .from('evolution_api_config')
-            .update(updateData)
-            .eq('instance_name', payload.instance)
-          
-          if (updateError) {
-            console.error('Erro ao atualizar instância:', updateError)
-          } else {
-            console.log('Instância atualizada:', payload.instance, updateData)
-          }
-        }
-      } catch (error) {
-        console.error('Erro ao processar evento de sistema:', error)
-      }
-      
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: `Evento ${payload.event} processado`,
-        instance: payload.instance
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
-    }
+    let result: any;
 
-    // EVENTOS DE CONTATOS E CHATS
-    if (['CONTACTS_SET', 'CONTACTS_UPSERT', 'CONTACTS_UPDATE', 'CHATS_SET', 'CHATS_UPSERT', 'CHATS_UPDATE', 'CHATS_DELETE'].includes(payload.event)) {
-      console.log(`Evento de dados recebido: ${payload.event} para instância ${payload.instance}`)
-      
-      // Log dos dados recebidos para análise
-      const { error: logError } = await supabase
-        .from('chatbot_logs')
-        .insert({
-          function_name: 'whatsapp-webhook-evolution',
-          level: 'info',
-          message: `Evento ${payload.event} processado`,
-          correlation_id: crypto.randomUUID(),
-          metadata: {
-            event: payload.event,
-            instance: payload.instance,
-            dataType: typeof payload.data,
-            hasData: !!payload.data
-          }
-        })
-      
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: `Evento ${payload.event} registrado`,
-        instance: payload.instance
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
-    }
-
-    // EVENTOS DE PRESENÇA E CHAMADAS
-    if (['PRESENCE_UPDATE', 'CALL', 'NEW_JWT_TOKEN'].includes(payload.event)) {
-      console.log(`Evento de presença/sistema: ${payload.event} para instância ${payload.instance}`)
-      
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: `Evento ${payload.event} registrado`,
-        instance: payload.instance
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
-    }
-
-    // EVENTOS DE TYPEBOT
-    if (['TYPEBOT_START', 'TYPEBOT_CHANGE_STATUS'].includes(payload.event)) {
-      console.log(`Evento Typebot: ${payload.event} para instância ${payload.instance}`)
-      
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: `Evento Typebot ${payload.event} registrado`,
-        instance: payload.instance
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
-    }
-
-    // EVENTOS DE MENSAGEM - ENFILEIRAR PARA PROCESSAMENTO RÁPIDO
-    if (['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'MESSAGES_DELETE', 'SEND_MESSAGE'].includes(payload.event)) {
-      // Para MESSAGES_UPSERT, processar apenas mensagens recebidas (não enviadas)
-      if (payload.event === 'MESSAGES_UPSERT') {
-        if (!payload.data?.key || payload.data.key.fromMe) {
-          await logger.info('Mensagem ignorada - enviada pelo próprio sistema')
-          return new Response(JSON.stringify({ success: true, message: 'Mensagem própria ignorada' }), {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 200,
-          })
-        }
-
-        // Enfileirar mensagem para processamento assíncrono
-        const messageId = await messageQueue.enqueue({
-          correlationId,
-          messageType: 'whatsapp_message_received',
-          payload: {
-            event: payload.event,
-            instance: payload.instance,
-            data: payload.data
-          },
-          priority: 1, // Alta prioridade para mensagens recebidas
-          metadata: {
-            source: 'evolution_api_webhook',
-            timestamp: new Date().toISOString()
-          }
-        })
-
-        await logger.info('Mensagem enfileirada para processamento', undefined, undefined, {
-          messageId,
-          event: payload.event,
-          instance: payload.instance
-        })
-
-        return new Response(JSON.stringify({ 
-          success: true, 
-          message: 'Mensagem enfileirada para processamento',
-          messageId,
-          correlationId
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        })
-      } else {
-        // Para outros eventos de mensagem, apenas logar
-        await logger.info(`Evento de mensagem: ${payload.event} para instância ${payload.instance}`)
-        return new Response(JSON.stringify({ 
-          success: true, 
-          message: `Evento ${payload.event} registrado` 
-        }), {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        })
-      }
+    if (systemEvents.includes(payload.event)) {
+      result = await processor.processSystemEvent(payload);
+    } else if (messageEvents.includes(payload.event)) {
+      result = await processor.processMessageEvent(payload);
+    } else if (dataEvents.includes(payload.event)) {
+      result = await processor.processDataEvent(payload);
+    } else if (presenceEvents.includes(payload.event) || typebotEvents.includes(payload.event)) {
+      await logger.info(`${payload.event} event registered`, payload.instance, 'event_log');
+      result = { success: true, message: `Event ${payload.event} registered`, instance: payload.instance };
     } else {
-      // Evento não reconhecido ou não suportado
-      await logger.info('Evento não suportado', undefined, undefined, { event: payload.event })
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: 'Evento não suportado',
-        event: payload.event
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      })
+      await logger.info('Unsupported event', payload.instance, 'unsupported_event', { event: payload.event });
+      result = { success: true, message: 'Event not supported', event: payload.event };
     }
 
-    // PROCESSAMENTO DIRETO REMOVIDO - AGORA TUDO É ENFILEIRADO
-    // O processamento detalhado das mensagens agora acontece no chatbot-queue-processor
-    // que irá processar as mensagens de forma assíncrona e otimizada
-    
-    // Esta seção foi movida para o queue processor para garantir resposta rápida ao webhook
-
-    // Esta função agora serve apenas como um webhook receiver otimizado
-    // Todo o processamento pesado foi movido para o queue processor
-    
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'Webhook processado - evento enfileirado',
-        correlationId
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    )
+    return new Response(JSON.stringify(result), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    });
 
   } catch (error) {
-    console.error('Erro ao processar webhook Evolution API:', error)
+    // Logger otimizado para produção - reduzir logs desnecessários
+    const errorId = crypto.randomUUID();
     
-    // Mesmo em caso de erro, retornamos 200 para evitar reenvios da Evolution API
-    return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: 'Erro interno - evento será reprocessado',
-        correlationId: crypto.randomUUID()
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200, // Mudado de 500 para 200 para evitar reenvios
-      }
-    )
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: 'Internal error - event will be reprocessed',
+      errorId
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200, // Retorna 200 para evitar reenvios da Evolution API
+    });
   }
-})
+});

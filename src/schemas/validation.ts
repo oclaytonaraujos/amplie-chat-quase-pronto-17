@@ -4,8 +4,119 @@
  */
 import { z } from 'zod';
 
+// Validações robustas client-side expandidas
+export const phoneSchema = z.string()
+  .min(10, "Telefone deve ter pelo menos 10 dígitos")
+  .max(15, "Telefone deve ter no máximo 15 dígitos")
+  .regex(/^[\d\s\-\+\(\)]+$/, "Telefone contém caracteres inválidos");
+
+export const emailSchema = z.string()
+  .email("Email inválido")
+  .max(255, "Email muito longo");
+
+export const passwordSchema = z.string()
+  .min(8, "Senha deve ter pelo menos 8 caracteres")
+  .max(128, "Senha muito longa")
+  .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, "Senha deve conter ao menos: 1 minúscula, 1 maiúscula e 1 número");
+
+export const nameSchema = z.string()
+  .min(2, "Nome deve ter pelo menos 2 caracteres")
+  .max(100, "Nome muito longo")
+  .regex(/^[a-zA-ZÀ-ÿ\s]+$/, "Nome deve conter apenas letras e espaços");
+
+export const cnpjSchema = z.string()
+  .optional()
+  .refine((val) => {
+    if (!val) return true;
+    const cleanCnpj = val.replace(/\D/g, '');
+    return cleanCnpj.length === 14;
+  }, "CNPJ deve ter 14 dígitos");
+
 // Validações básicas reutilizáveis
 export const commonValidations = {
+  email: emailSchema,
+  password: passwordSchema,
+  telefone: phoneSchema,
+  nome: nameSchema,
+  documento: z.string()
+    .min(11, 'Documento inválido')
+    .max(18, 'Documento muito longo')
+    .regex(/^[\d\.\-\/]+$/, 'Documento contém caracteres inválidos'),
+  url: z.string()
+    .url('URL inválida')
+    .max(255, 'URL muito longa'),
+  slug: z.string()
+    .min(3, 'Slug deve ter pelo menos 3 caracteres')
+    .max(50, 'Slug muito longo')
+    .regex(/^[a-z0-9-]+$/, 'Slug deve conter apenas letras minúsculas, números e hífens'),
+};
+
+// Schemas para formulários robustos
+export const contatoSchema = z.object({
+  nome: nameSchema,
+  telefone: phoneSchema.optional(),
+  email: emailSchema.optional(),
+  empresa: z.string().max(100).optional(),
+  observacoes: z.string().max(500).optional(),
+  tags: z.array(z.string()).optional()
+}).refine(data => data.telefone || data.email, {
+  message: "Pelo menos telefone ou email deve ser fornecido"
+});
+
+export const empresaSchema = z.object({
+  nome: nameSchema,
+  cnpj: cnpjSchema,
+  email: emailSchema.optional(),
+  telefone: phoneSchema.optional(),
+  endereco: z.string().max(255).optional()
+});
+
+export const usuarioSchema = z.object({
+  nome: nameSchema,
+  email: emailSchema,
+  password: passwordSchema.optional(),
+  cargo: z.enum(['admin', 'agente', 'usuario']),
+  setor: z.string().optional(),
+  ativo: z.boolean().optional()
+});
+
+export const chatbotSchema = z.object({
+  nome: z.string().min(3, "Nome deve ter pelo menos 3 caracteres").max(100),
+  mensagem_inicial: z.string().min(10, "Mensagem inicial muito curta").max(1000),
+  status: z.enum(['ativo', 'inativo']),
+  fluxo: z.array(z.any()).optional()
+});
+
+export const mensagemSchema = z.object({
+  conteudo: z.string().min(1, "Mensagem não pode estar vazia").max(4000),
+  tipo: z.enum(['text', 'image', 'video', 'audio', 'document']).optional().default('text'),
+  destinatario: phoneSchema
+});
+
+// Validação para uploads robusta
+export const uploadSchema = z.object({
+  file: z.instanceof(File),
+  maxSize: z.number().positive().optional().default(10), // MB
+  allowedTypes: z.array(z.string()).optional()
+}).refine((data) => {
+  if (data.file.size > data.maxSize * 1024 * 1024) {
+    return false;
+  }
+  if (data.allowedTypes && data.allowedTypes.length > 0) {
+    return data.allowedTypes.some(type => data.file.type.includes(type));
+  }
+  return true;
+}, "Arquivo inválido");
+
+// Validação para configurações avançadas
+export const evolutionApiConfigSchema = z.object({
+  instance_name: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/),
+  webhook_url: z.string().url().optional(),
+  webhook_events: z.array(z.string()).optional(),
+  always_online: z.boolean().optional(),
+  read_messages: z.boolean().optional(),
+  read_status: z.boolean().optional()
+});
   email: z.string()
     .min(1, 'Email é obrigatório')
     .email('Email inválido')
