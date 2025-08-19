@@ -22,10 +22,8 @@ import { PushNotificationProvider } from '@/components/notifications/PushNotific
 import { AdvancedMessageTemplates } from '@/components/templates/AdvancedMessageTemplates';
 import { ServiceWorkerControls, OfflineIndicator } from '@/hooks/useServiceWorker';
 import { PerformanceMonitor } from '@/components/ui/performance-monitor';
-import { WebhookManager } from '@/components/integrations/WebhookManager';
 import { AdvancedReports } from '@/components/reports/AdvancedReports';
 import { SentimentAnalysisIA } from '@/components/ai/SentimentAnalysisIA';
-import { SystemMonitor } from '@/components/performance/SystemMonitor';
 import { HighContrastToggle, ReduceMotionToggle } from '@/components/ui/accessibility-features';
 
 const melhoriasList = {
@@ -452,9 +450,11 @@ export default function MelhoriasDashboard() {
                   Configure integrações com Zapier, n8n, Make e outras plataformas
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <WebhookManager />
-              </CardContent>
+               <CardContent>
+                 <div className="text-center p-8 text-muted-foreground">
+                   <p>Componente de Webhooks removido temporariamente</p>
+                 </div>
+               </CardContent>
             </Card>
 
             <Card>
@@ -500,9 +500,11 @@ export default function MelhoriasDashboard() {
                 Monitoramento em tempo real e sistema de backup automático
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <SystemMonitor />
-            </CardContent>
+             <CardContent>
+               <div className="text-center p-8 text-muted-foreground">
+                 <p>Monitor do sistema será implementado na próxima versão</p>
+               </div>
+             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>

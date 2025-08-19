@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ConnectionMonitor } from '@/components/monitoring/ConnectionMonitor';
-import { ConnectionMetrics } from '@/components/monitoring/ConnectionMetrics';
+// Removed monitoring components
 import { useAllInstances } from '@/hooks/useAllInstances';
 import { 
   Activity, 
@@ -131,11 +130,25 @@ export function ConnectionDashboard() {
         </div>
 
         <TabsContent value="overview">
-          <ConnectionMonitor />
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium">Monitor de Conexões</h3>
+                <p className="text-muted-foreground">Monitor em tempo real será implementado em breve</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="metrics">
-          <ConnectionMetrics />
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center space-y-2">
+                <h3 className="text-lg font-medium">Métricas de Performance</h3>
+                <p className="text-muted-foreground">Métricas detalhadas serão implementadas em breve</p>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="instances" className="space-y-4">

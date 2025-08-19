@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, Grid2X2, Settings, Building2, Bot, MessageCircle, UserCheck, BarChart3, FileText, Zap, Activity, Webhook } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Grid2X2, Settings, Building2, Bot, MessageCircle, UserCheck, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -60,34 +60,10 @@ const menuItems = [
     color: 'text-red-400'
   },
   {
-    title: 'Analytics',
-    icon: BarChart3,
-    href: '/analytics',
-    color: 'text-blue-500'
-  },
-  {
     title: 'Templates',
     icon: FileText,
     href: '/templates',
     color: 'text-pink-400'
-  },
-  {
-    title: 'Automation',
-    icon: Zap,
-    href: '/automation-builder',
-    color: 'text-yellow-400'
-  },
-  {
-    title: 'Monitor',
-    icon: Activity,
-    href: '/system-monitor',
-    color: 'text-lime-400'
-  },
-  {
-    title: 'Webhooks',
-    icon: Webhook,
-    href: '/webhooks',
-    color: 'text-violet-400'
   }
 ];
 

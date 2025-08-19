@@ -32,14 +32,10 @@ const routeImports: Record<string, () => Promise<any>> = {
   '/chat-interno': () => import('@/pages/ChatInterno'),
   '/kanban': () => import('@/pages/Kanban'),
   '/chatbot': () => import('@/pages/ChatBot'),
-  '/analytics': () => import('@/components/analytics/ComprehensiveAnalytics'),
   '/usuarios': () => import('@/pages/Usuarios'),
   '/setores': () => import('@/pages/Setores'),
   '/gerenciar-equipe': () => import('@/pages/GerenciarEquipe'),
   '/templates': () => import('@/components/templates/AdvancedTemplateManager'),
-  '/automation-builder': () => import('@/components/automation/AdvancedAutomationBuilder'),
-  '/system-monitor': () => import('@/components/performance/SystemMonitor'),
-  '/webhooks': () => import('@/components/integrations/WebhookManager'),
   '/meu-perfil': () => import('@/pages/MeuPerfil'),
   '/painel': () => import('@/pages/Painel')
 };

@@ -39,7 +39,6 @@ const Setores = lazy(() => import("@/pages/Setores").then(m => ({ default: m.def
 
 // Páginas menos críticas - carregamento sob demanda
 const ChatInterno = lazy(() => import("@/pages/ChatInterno").then(m => ({ default: m.default })));
-const Automations = lazy(() => import("@/pages/Automations").then(m => ({ default: m.default })));
 const GerenciarEquipe = lazy(() => import("@/pages/GerenciarEquipe").then(m => ({ default: m.default })));
 const MeuPerfil = lazy(() => import("@/pages/MeuPerfil").then(m => ({ default: m.default })));
 const PlanoFaturamento = lazy(() => import("@/pages/PlanoFaturamento").then(m => ({ default: m.default })));
@@ -52,13 +51,8 @@ const PreferenciasNotificacao = lazy(() => import("@/pages/configuracoes/Prefere
 const Aparencia = lazy(() => import("@/pages/configuracoes/Aparencia").then(m => ({ default: m.default })));
 const Idioma = lazy(() => import("@/pages/configuracoes/Idioma").then(m => ({ default: m.default })));
 
-// Advanced Features - carregamento sob demanda
-const ComprehensiveAnalytics = lazy(() => import("@/components/analytics/ComprehensiveAnalytics").then(m => ({ default: m.ComprehensiveAnalytics })));
+// Templates - carregamento sob demanda
 const AdvancedTemplateManager = lazy(() => import("@/components/templates/AdvancedTemplateManager").then(m => ({ default: m.AdvancedTemplateManager })));
-const AdvancedAutomationBuilder = lazy(() => import("@/components/automation/AdvancedAutomationBuilder").then(m => ({ default: m.AdvancedAutomationBuilder })));
-const SystemMonitor = lazy(() => import("@/components/performance/SystemMonitor").then(m => ({ default: m.SystemMonitor })));
-const WebhookManager = lazy(() => import("@/components/integrations/WebhookManager").then(m => ({ default: m.WebhookManager })));
-const MonitorConexoes = lazy(() => import("@/pages/MonitorConexoes").then(m => ({ default: m.default })));
 
 const NotFound = lazy(() => import("@/pages/NotFound").then(m => ({ default: m.default })));
 
@@ -222,16 +216,6 @@ function AppRoutes() {
       
       
       {/* Rotas de baixa prioridade */}
-      <Route path="/automations" element={
-        <ProtectedRoute>
-          <Layout title="Automações" description="Fluxos de automação">
-            <Suspense fallback={<PageContentFallback />}>
-              <Automations />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
       <Route path="/chat-interno" element={
         <ProtectedRoute>
           <Layout title="Chat Interno" description="Comunicação interna">
@@ -323,62 +307,12 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       
-      {/* Advanced Features */}
-      <Route path="/analytics" element={
-        <ProtectedRoute>
-          <Layout title="Analytics" description="Relatórios e análises avançadas">
-            <Suspense fallback={<PageContentFallback />}>
-              <ComprehensiveAnalytics />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
+      {/* Templates */}
       <Route path="/templates" element={
         <ProtectedRoute>
           <Layout title="Templates" description="Gerenciador de templates">
             <Suspense fallback={<PageContentFallback />}>
               <AdvancedTemplateManager />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/automation-builder" element={
-        <ProtectedRoute>
-          <Layout title="Automation Builder" description="Construtor de automações">
-            <Suspense fallback={<PageContentFallback />}>
-              <AdvancedAutomationBuilder />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/system-monitor" element={
-        <ProtectedRoute>
-          <Layout title="Monitor do Sistema" description="Monitoramento em tempo real">
-            <Suspense fallback={<PageContentFallback />}>
-              <SystemMonitor />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/webhooks" element={
-        <ProtectedRoute>
-          <Layout title="Webhooks" description="Gerenciador de webhooks">
-            <Suspense fallback={<PageContentFallback />}>
-              <WebhookManager />
-            </Suspense>
-          </Layout>
-        </ProtectedRoute>
-      } />
-      
-      <Route path="/monitor-conexoes" element={
-        <ProtectedRoute>
-          <Layout title="Monitor de Conexões" description="Monitoramento de conexões WhatsApp">
-            <Suspense fallback={<PageContentFallback />}>
-              <MonitorConexoes />
             </Suspense>
           </Layout>
         </ProtectedRoute>
