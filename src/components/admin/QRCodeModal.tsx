@@ -56,7 +56,7 @@ export function QRCodeModal({
             <div className="flex flex-col items-center justify-center w-64 h-64 bg-muted rounded-lg border-2 border-dashed">
               {isLoading ? (
                 <>
-                  <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground mb-2" />
+                  <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">Gerando QR Code...</p>
                 </>
               ) : (
@@ -94,7 +94,7 @@ export function QRCodeModal({
               disabled={isLoading}
               className="flex-1"
             >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className="w-4 h-4 mr-2" />
               Atualizar QR Code
             </Button>
             <Button

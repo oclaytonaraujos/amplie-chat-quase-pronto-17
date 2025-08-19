@@ -4,6 +4,7 @@ import { MessageSquare, Clock, User, Tag } from 'lucide-react';
 import { VirtualScroll } from '@/components/ui/virtual-scroll';
 import { useAtendimentoReal } from '@/hooks/useAtendimentoReal';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface Conversa {
   id: string;
@@ -142,12 +143,7 @@ ConversaItem.displayName = 'ConversaItem';
 
 // Loading skeleton otimizado
 const LoadingSkeleton = memo(() => (
-  <div className="flex items-center justify-center p-8">
-    <div className="text-center">
-      <div className="animate-pulse rounded-full h-8 w-8 bg-muted mx-auto mb-2"></div>
-      <p className="text-sm text-muted-foreground">Carregando conversas...</p>
-    </div>
-  </div>
+  <SyncLoaderSection text="Carregando conversas..." />
 ));
 
 LoadingSkeleton.displayName = 'LoadingSkeleton';

@@ -2,7 +2,8 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useWhatsAppEvolution } from '@/hooks/useWhatsAppCompatibility';
-import { Loader2, Smartphone } from 'lucide-react';
+import { Smartphone } from 'lucide-react';
+import { SyncLoader } from '@/components/ui/sync-loader';
 
 interface WhatsAppConnectionSelectorProps {
   value?: string;
@@ -24,7 +25,7 @@ export function WhatsAppConnectionSelector({
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="flex items-center space-x-2 p-3 border rounded-md">
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <SyncLoader size="sm" />
           <span className="text-sm text-muted-foreground">Carregando conexões...</span>
         </div>
       </div>
@@ -98,7 +99,7 @@ export function MultiWhatsAppConnectionSelector({
       <div className="space-y-2">
         <Label>{label}</Label>
         <div className="flex items-center space-x-2 p-3 border rounded-md">
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <SyncLoader size="sm" />
           <span className="text-sm text-muted-foreground">Carregando conexões...</span>
         </div>
       </div>

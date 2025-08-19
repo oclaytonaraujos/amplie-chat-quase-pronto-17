@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 import { 
   Activity, 
   Clock, 
@@ -137,7 +138,7 @@ export function InstanceStatusMonitor({
             disabled={monitoring}
           >
             {monitoring ? (
-              <RefreshCw className="w-4 h-4 animate-spin" />
+              <SyncLoaderInline />
             ) : (
               <RefreshCw className="w-4 h-4" />
             )}

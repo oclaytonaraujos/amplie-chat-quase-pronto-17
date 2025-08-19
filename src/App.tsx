@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense, useEffect, startTransition } from "react";
+import { SyncLoader } from '@/components/ui/sync-loader';
 
 // Core providers otimizados - reduzido de 14 para 6
 import { ThemeProvider } from "@/hooks/useTheme";
@@ -50,13 +51,13 @@ const NotFound = lazy(() => import("@/pages/NotFound"));
 // Fallback ultra-otimizado
 const OptimizedFallback = () => (
   <div className="h-40 w-full flex items-center justify-center">
-    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <SyncLoader />
   </div>
 );
 
 const FullScreenFallback = () => (
   <div className="h-screen w-full bg-background flex items-center justify-center">
-    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    <SyncLoader size="lg" />
   </div>
 );
 

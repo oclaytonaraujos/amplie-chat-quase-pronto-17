@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { KanbanBoard } from '@/components/kanban/KanbanBoard';
 import { KanbanFilters } from '@/components/kanban/KanbanFilters';
 import { useAtendimentoReal } from '@/hooks/useAtendimentoReal';
-import { Loader2 } from 'lucide-react';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 import { Atendimento } from '@/types/atendimento';
 
 export default function Kanban() {
@@ -56,11 +56,8 @@ export default function Kanban() {
 
   if (loading) {
     return (
-      <div className="p-6 flex items-center justify-center h-64">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Carregando atendimentos...</p>
-        </div>
+      <div className="p-6">
+        <SyncLoaderSection text="Carregando atendimentos..." />
       </div>
     );
   }

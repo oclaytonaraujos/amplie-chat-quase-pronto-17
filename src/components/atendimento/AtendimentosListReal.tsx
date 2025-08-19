@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Clock, User, Tag } from 'lucide-react';
 import { useAtendimentoReal } from '@/hooks/useAtendimentoReal';
+import { SyncLoaderSection } from '@/components/ui/sync-loader';
 
 interface Conversa {
   id: string;
@@ -106,12 +107,7 @@ export function AtendimentosListReal({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500">Carregando conversas...</p>
-        </div>
-      </div>
+      <SyncLoaderSection text="Carregando conversas..." />
     );
   }
 

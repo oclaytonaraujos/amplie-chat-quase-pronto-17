@@ -5,6 +5,7 @@ import React, { Suspense, lazy, ComponentType } from 'react';
 import { Loading } from '@/components/ui/loading-states';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { cn } from '@/lib/utils';
+import { SyncLoaderSection } from './sync-loader';
 
 // Componente para lazy loading com fallback
 interface LazyComponentProps {
@@ -15,7 +16,7 @@ interface LazyComponentProps {
 
 export function LazyWrapper({ 
   children, 
-  fallback = <Loading variant="spinner" size="lg" text="Carregando componente..." />,
+  fallback = <SyncLoaderSection text="Carregando componente..." />,
   error = <div className="p-4 text-center text-destructive">Erro ao carregar componente</div>
 }: LazyComponentProps) {
   return (
@@ -71,7 +72,7 @@ export function withLazy<T extends {}>(
   const WrappedComponent = (props: T) => {
     const fallback = FallbackComponent ? 
       <FallbackComponent /> : 
-      <Loading variant="spinner" size="lg" text="Carregando..." />;
+      <SyncLoaderSection text="Carregando..." />;
 
     const content = (
       <Suspense fallback={fallback}>

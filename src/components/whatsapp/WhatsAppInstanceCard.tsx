@@ -24,6 +24,7 @@ import {
   AlertDialogTitle, 
   AlertDialogTrigger 
 } from '@/components/ui/alert-dialog';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface WhatsAppInstance {
   id: string;
@@ -157,7 +158,7 @@ export function WhatsAppInstanceCard({
                 className="bg-green-600 hover:bg-green-700"
               >
                 {isConnecting ? (
-                  <RefreshCw className="w-4 h-4 animate-spin mr-2" />
+                  <SyncLoaderInline />
                 ) : (
                   <Wifi className="w-4 h-4 mr-2" />
                 )}

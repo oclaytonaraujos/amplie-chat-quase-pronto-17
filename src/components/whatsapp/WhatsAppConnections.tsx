@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Smartphone, CheckCircle, XCircle, Clock, Loader2, Trash2 } from 'lucide-react';
+import { Plus, Smartphone, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SyncLoaderInline } from '@/components/ui/sync-loader';
 
 interface WhatsAppConnection {
   id: string;
@@ -212,7 +213,7 @@ export function WhatsAppConnections() {
                   >
                     {isGeneratingQR && activeQRConnection === connection.id ? (
                       <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        <SyncLoaderInline />
                         Gerando QR Code...
                       </>
                     ) : (
