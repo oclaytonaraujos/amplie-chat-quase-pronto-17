@@ -5,19 +5,21 @@ export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutos
-      gcTime: 10 * 60 * 1000, // 10 minutos
+      gcTime: 10 * 60 * 1000, // 10 minutos (era cacheTime)
       refetchOnWindowFocus: false,
-      refetchOnMount: true, // Permitir refetch no mount para dados atualizados
-      refetchOnReconnect: true, // Refetch quando reconectar
+      refetchOnReconnect: 'always',
       retry: (failureCount, error: any) => {
-        if (error?.message?.includes('JWT')) return false;
-        return failureCount < 2; // Aumentar tentativas para melhor confiabilidade
+        // Não tentar novamente para erros 4xx
+        if (error?.status >= 400 && error?.status < 500) {
+          return false;
+        }
+        return failureCount < 2;
       },
-      networkMode: 'online', // Só fazer queries quando online
+      retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000)
     },
     mutations: {
-      retry: 1, // Permitir uma retry em mutations
-      networkMode: 'online',
-    },
-  },
+      retry: 1,
+      retryDelay: 1000
+    }
+  }
 });

@@ -32,7 +32,6 @@ const Atendimento = lazy(() => import("@/pages/Atendimento").then(m => ({ defaul
 const Contatos = lazy(() => import("@/pages/Contatos").then(m => ({ default: m.default })));
 const Kanban = lazy(() => import("@/pages/Kanban").then(m => ({ default: m.default })));
 const ChatBot = lazy(() => import("@/pages/ChatBot").then(m => ({ default: m.default })));
-const FlowBuilder = lazy(() => import("@/pages/FlowBuilder").then(m => ({ default: m.default })));
 const Usuarios = lazy(() => import("@/pages/Usuarios").then(m => ({ default: m.default })));
 const Setores = lazy(() => import("@/pages/Setores").then(m => ({ default: m.default })));
 
@@ -77,17 +76,21 @@ const preloadCriticalPages = () => {
   // Verificar se vale a pena fazer preload
   if ('connection' in navigator) {
     const connection = (navigator as any).connection;
-    if (connection.effectiveType === '2g' || connection.saveData) {
+    if (connection?.effectiveType === '2g' || connection?.saveData) {
       return; // Skip preload em conexões lentas
     }
   }
 
-  // Preload apenas componentes críticos
-  requestIdleCallback(() => {
-    import('@/components/ui/button');
-    import('@/components/ui/card');
-    import('@/components/ui/skeleton');
-  });
+  // Preload apenas componentes críticos usando requestIdleCallback
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(() => {
+      import('@/components/ui/button');
+      import('@/components/ui/card');
+      import('@/components/ui/skeleton');
+      import('@/pages/Dashboard');
+      import('@/pages/Atendimento');
+    }, { timeout: 2000 });
+  }
 };
 
 function AppRoutes() {
@@ -187,9 +190,13 @@ function AppRoutes() {
       } />
       
       <Route path="/chatbot/flow-builder/:id" element={
-        <Suspense fallback={<FastFallback />}>
+        <Suspense fallback={<PageContentFallback />}>
           <ProtectedRoute>
-            <FlowBuilder />
+            <Layout title="Flow Builder" description="Construtor de fluxos">
+              <div className="flex items-center justify-center h-40">
+                <p className="text-muted-foreground">Flow Builder será implementado em breve</p>
+              </div>
+            </Layout>
           </ProtectedRoute>
         </Suspense>
       } />

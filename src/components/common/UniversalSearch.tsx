@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { useOptimizedQuery } from '@/hooks/useOptimizedQuery';
+import { useQuery } from '@tanstack/react-query';
 import { useDebounce } from '@/hooks/useDebounce';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchResult {
   id: string;
@@ -37,25 +38,41 @@ export const UniversalSearch: React.FC<UniversalSearchProps> = ({
   const debouncedQuery = useDebounce(query, 300);
   
   // Busca em contatos
-  const { data: contatos = [] } = useOptimizedQuery({
-    table: 'contatos',
-    select: 'id, nome, telefone, email, empresa',
-    filters: debouncedQuery ? { 
-      nome: `%${debouncedQuery}%` 
-    } : {},
-    staleTime: 30000,
-    enableRealtime: true
+  const { data: contatos = [], isLoading: loadingContatos } = useQuery({
+    queryKey: ['contatos', debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery || debouncedQuery.length < 2) return [];
+      
+      const { data, error } = await supabase
+        .from('contatos')
+        .select('id, nome, telefone, email, empresa')
+        .ilike('nome', `%${debouncedQuery}%`)
+        .limit(10);
+        
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 30000
   });
   
   // Busca em conversas
-  const { data: conversas = [] } = useOptimizedQuery({
-    table: 'conversas',
-    select: 'id, status, canal, created_at, contatos(nome)',
-    filters: debouncedQuery ? { 
-      status: 'ativo' 
-    } : {},
-    staleTime: 30000,
-    enableRealtime: true
+  const { data: conversas = [], isLoading: loadingConversas } = useQuery({
+    queryKey: ['conversas', debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery || debouncedQuery.length < 2) return [];
+      
+      const { data, error } = await supabase
+        .from('conversas')
+        .select('id, status, canal, created_at, contatos(nome)')
+        .eq('status', 'ativo')
+        .limit(10);
+        
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: debouncedQuery.length >= 2,
+    staleTime: 30000
   });
 
   const searchResults = useMemo(() => {
@@ -64,7 +81,7 @@ export const UniversalSearch: React.FC<UniversalSearchProps> = ({
     const results: SearchResult[] = [];
     
     // Resultados de contatos
-    contatos?.forEach((contato: any) => {
+    (contatos as any[])?.forEach((contato: any) => {
       const score = calculateRelevanceScore(debouncedQuery, contato.nome, contato.email);
       if (score > 0.3) {
         results.push({
@@ -79,7 +96,7 @@ export const UniversalSearch: React.FC<UniversalSearchProps> = ({
     });
     
     // Resultados de conversas
-    conversas?.forEach((conversa: any) => {
+    (conversas as any[])?.forEach((conversa: any) => {
       const nomeContato = conversa.contatos?.nome || 'Conversa sem nome';
       const score = calculateRelevanceScore(debouncedQuery, nomeContato);
       if (score > 0.2) {
