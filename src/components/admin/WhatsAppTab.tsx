@@ -4,11 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, ExternalLink, Zap, Bot } from 'lucide-react';
 import { WhatsAppManager } from '@/components/whatsapp/WhatsAppManager';
-import { N8nConfigDialog } from '@/components/admin/N8nConfigDialog';
-import { WebhookConfigurationCenter } from '@/components/admin/WebhookConfigurationCenter';
 import { ChatbotStateManager } from '@/components/admin/ChatbotStateManager';
-import { WebhookMonitoring } from '@/components/admin/WebhookMonitoring';
-import { WebhookTester } from '@/components/admin/WebhookTester';
+import { N8nWebhookConfig } from '@/components/admin/N8nWebhookConfig';
 
 export function WhatsAppTab() {
   const [showN8nConfig, setShowN8nConfig] = useState(false);
@@ -59,15 +56,9 @@ export function WhatsAppTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-6">
-          <WebhookConfigurationCenter />
+          <N8nWebhookConfig />
         </CardContent>
       </Card>
-
-      {/* Monitoramento de Webhooks Evolution API */}
-      <WebhookMonitoring />
-
-      {/* Testador de Webhook */}
-      <WebhookTester />
 
       {/* Gerenciador de Estados do Chatbot */}
       <Card className="rounded-2xl shadow-lg border-0">
@@ -156,11 +147,7 @@ export function WhatsAppTab() {
         </CardContent>
       </Card>
 
-      {/* Dialog de Configuração N8n */}
-      <N8nConfigDialog
-        open={showN8nConfig}
-        onOpenChange={setShowN8nConfig}
-      />
+      {/* Removido: Dialog N8nConfig */}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/structured-logger';
-import { EventsService } from '@/services/EventsService';
+// Removido: EventsService
 import { useEvolutionApiSender } from './useEvolutionApiSender';
 
 interface SendMessageParams {
@@ -97,7 +97,8 @@ export function useEvolutionApiSenderV2() {
 
       switch (params.tipo) {
         case 'texto':
-          response = await EventsService.sendTextMessage(
+          // Fallback para modo direto sem EventsService
+          return await directSender.sendMessage(params);
             instance.nome,
             params.telefone,
             params.mensagem,
@@ -122,7 +123,8 @@ export function useEvolutionApiSenderV2() {
           const mediaUrl = params.opcoes.imageUrl || params.opcoes.audioUrl || 
                           params.opcoes.videoUrl || params.opcoes.documentUrl!;
 
-          response = await EventsService.sendMediaMessage(
+          // Fallback para modo direto
+          return await directSender.sendMessage(params);
             instance.nome,
             params.telefone,
             mediaUrl,
@@ -141,7 +143,8 @@ export function useEvolutionApiSenderV2() {
             throw new Error('Botões são obrigatórios');
           }
 
-          response = await EventsService.sendButtonsMessage(
+          // Fallback para modo direto
+          return await directSender.sendMessage(params);
             instance.nome,
             params.telefone,
             params.mensagem,
@@ -158,7 +161,8 @@ export function useEvolutionApiSenderV2() {
             throw new Error('Lista é obrigatória');
           }
 
-          response = await EventsService.sendListMessage(
+          // Fallback para modo direto
+          return await directSender.sendMessage(params);
             instance.nome,
             params.telefone,
             params.mensagem,

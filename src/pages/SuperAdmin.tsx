@@ -12,7 +12,7 @@ import EmpresasTab from '@/components/admin/EmpresasTab';
 import UsuariosTab from '@/components/admin/UsuariosTab';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
 import PlanosGerenciamento from '@/components/admin/PlanosGerenciamento';
-import IntegracoesCentralizadas from '@/components/admin/IntegracoesCentralizadas';
+import { N8nWebhookConfig } from '@/components/admin/N8nWebhookConfig';
 import ConfiguracoesAvancadas from '@/components/admin/ConfiguracoesAvancadas';
 import QueueMonitoring from '@/components/admin/QueueMonitoring';
 
@@ -129,7 +129,7 @@ export default function SuperAdmin() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-8">
-                <IntegracoesCentralizadas />
+                <N8nWebhookConfig />
               </CardContent>
             </Card>
           </TabsContent>

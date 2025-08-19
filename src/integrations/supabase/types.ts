@@ -89,146 +89,6 @@ export type Database = {
         }
         Relationships: []
       }
-      automation_triggers: {
-        Row: {
-          actions: Json | null
-          conditions: Json | null
-          cooldown_minutes: number | null
-          created_at: string | null
-          description: string | null
-          empresa_id: string
-          enabled: boolean | null
-          id: string
-          max_activations_per_day: number | null
-          name: string
-          priority: number | null
-          trigger_type: string
-          updated_at: string | null
-        }
-        Insert: {
-          actions?: Json | null
-          conditions?: Json | null
-          cooldown_minutes?: number | null
-          created_at?: string | null
-          description?: string | null
-          empresa_id: string
-          enabled?: boolean | null
-          id?: string
-          max_activations_per_day?: number | null
-          name: string
-          priority?: number | null
-          trigger_type: string
-          updated_at?: string | null
-        }
-        Update: {
-          actions?: Json | null
-          conditions?: Json | null
-          cooldown_minutes?: number | null
-          created_at?: string | null
-          description?: string | null
-          empresa_id?: string
-          enabled?: boolean | null
-          id?: string
-          max_activations_per_day?: number | null
-          name?: string
-          priority?: number | null
-          trigger_type?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "automation_triggers_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      automation_whatsapp_connections: {
-        Row: {
-          automation_id: string
-          created_at: string
-          id: string
-          whatsapp_connection_id: string
-        }
-        Insert: {
-          automation_id: string
-          created_at?: string
-          id?: string
-          whatsapp_connection_id: string
-        }
-        Update: {
-          automation_id?: string
-          created_at?: string
-          id?: string
-          whatsapp_connection_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "automation_whatsapp_connections_automation_id_fkey"
-            columns: ["automation_id"]
-            isOneToOne: false
-            referencedRelation: "automations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automation_whatsapp_connections_whatsapp_connection_id_fkey"
-            columns: ["whatsapp_connection_id"]
-            isOneToOne: false
-            referencedRelation: "whatsapp_connections"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      automations: {
-        Row: {
-          created_at: string | null
-          empresa_id: string
-          flow_data: Json | null
-          id: string
-          name: string
-          status: string | null
-          updated_at: string | null
-          whatsapp_connection_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          empresa_id: string
-          flow_data?: Json | null
-          id?: string
-          name: string
-          status?: string | null
-          updated_at?: string | null
-          whatsapp_connection_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          empresa_id?: string
-          flow_data?: Json | null
-          id?: string
-          name?: string
-          status?: string | null
-          updated_at?: string | null
-          whatsapp_connection_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "automations_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "automations_whatsapp_connection_id_fkey"
-            columns: ["whatsapp_connection_id"]
-            isOneToOne: false
-            referencedRelation: "whatsapp_connections"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       backup_logs: {
         Row: {
           backup_type: string
@@ -1413,106 +1273,6 @@ export type Database = {
         }
         Relationships: []
       }
-      integration_event_logs: {
-        Row: {
-          event_id: string
-          id: string
-          level: string
-          logged_at: string
-          message: string
-          metadata: Json | null
-        }
-        Insert: {
-          event_id: string
-          id?: string
-          level: string
-          logged_at?: string
-          message: string
-          metadata?: Json | null
-        }
-        Update: {
-          event_id?: string
-          id?: string
-          level?: string
-          logged_at?: string
-          message?: string
-          metadata?: Json | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "integration_event_logs_event_id_fkey"
-            columns: ["event_id"]
-            isOneToOne: false
-            referencedRelation: "integration_events"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      integration_events: {
-        Row: {
-          correlation_id: string
-          created_at: string
-          delivered_at: string | null
-          destination: string | null
-          empresa_id: string
-          error_message: string | null
-          event_type: string
-          id: string
-          idempotency_key: string | null
-          max_retries: number | null
-          payload: Json
-          processed_at: string | null
-          retry_count: number | null
-          source: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          correlation_id: string
-          created_at?: string
-          delivered_at?: string | null
-          destination?: string | null
-          empresa_id: string
-          error_message?: string | null
-          event_type: string
-          id?: string
-          idempotency_key?: string | null
-          max_retries?: number | null
-          payload?: Json
-          processed_at?: string | null
-          retry_count?: number | null
-          source?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          correlation_id?: string
-          created_at?: string
-          delivered_at?: string | null
-          destination?: string | null
-          empresa_id?: string
-          error_message?: string | null
-          event_type?: string
-          id?: string
-          idempotency_key?: string | null
-          max_retries?: number | null
-          payload?: Json
-          processed_at?: string | null
-          retry_count?: number | null
-          source?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "integration_events_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       mensagens: {
         Row: {
           conteudo: string
@@ -1711,149 +1471,39 @@ export type Database = {
         }
         Relationships: []
       }
-      n8n_configurations: {
+      n8n_webhook_config: {
         Row: {
-          api_key: string | null
-          created_at: string
+          ativo: boolean | null
+          created_at: string | null
           empresa_id: string
           id: string
-          instance_url: string
-          last_ping: string | null
-          settings: Json | null
-          status: string
-          success_rate: number | null
-          total_executions: number | null
-          updated_at: string
-          webhook_chatbot: string | null
-          webhook_create_connection: string | null
-          webhook_delete_instance: string | null
-          webhook_receive_url: string | null
-          webhook_send_url: string | null
-          workflow_count: number | null
+          updated_at: string | null
+          url_boot: string | null
+          url_configuracao_instancia: string | null
+          url_envio_mensagens: string | null
+          url_recebimento_mensagens: string | null
         }
         Insert: {
-          api_key?: string | null
-          created_at?: string
+          ativo?: boolean | null
+          created_at?: string | null
           empresa_id: string
           id?: string
-          instance_url?: string
-          last_ping?: string | null
-          settings?: Json | null
-          status?: string
-          success_rate?: number | null
-          total_executions?: number | null
-          updated_at?: string
-          webhook_chatbot?: string | null
-          webhook_create_connection?: string | null
-          webhook_delete_instance?: string | null
-          webhook_receive_url?: string | null
-          webhook_send_url?: string | null
-          workflow_count?: number | null
+          updated_at?: string | null
+          url_boot?: string | null
+          url_configuracao_instancia?: string | null
+          url_envio_mensagens?: string | null
+          url_recebimento_mensagens?: string | null
         }
         Update: {
-          api_key?: string | null
-          created_at?: string
+          ativo?: boolean | null
+          created_at?: string | null
           empresa_id?: string
           id?: string
-          instance_url?: string
-          last_ping?: string | null
-          settings?: Json | null
-          status?: string
-          success_rate?: number | null
-          total_executions?: number | null
-          updated_at?: string
-          webhook_chatbot?: string | null
-          webhook_create_connection?: string | null
-          webhook_delete_instance?: string | null
-          webhook_receive_url?: string | null
-          webhook_send_url?: string | null
-          workflow_count?: number | null
-        }
-        Relationships: []
-      }
-      n8n_execution_logs: {
-        Row: {
-          config_id: string
-          created_at: string
-          duration_ms: number | null
-          error_message: string | null
-          event_type: string | null
-          execution_id: string | null
-          id: string
-          input_data: Json | null
-          output_data: Json | null
-          status: string
-          workflow_id: string | null
-        }
-        Insert: {
-          config_id: string
-          created_at?: string
-          duration_ms?: number | null
-          error_message?: string | null
-          event_type?: string | null
-          execution_id?: string | null
-          id?: string
-          input_data?: Json | null
-          output_data?: Json | null
-          status: string
-          workflow_id?: string | null
-        }
-        Update: {
-          config_id?: string
-          created_at?: string
-          duration_ms?: number | null
-          error_message?: string | null
-          event_type?: string | null
-          execution_id?: string | null
-          id?: string
-          input_data?: Json | null
-          output_data?: Json | null
-          status?: string
-          workflow_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "n8n_execution_logs_config_id_fkey"
-            columns: ["config_id"]
-            isOneToOne: false
-            referencedRelation: "n8n_configurations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      n8n_webhook_configs: {
-        Row: {
-          chatbot_webhook_url: string | null
-          created_at: string
-          empresa_id: string
-          id: string
-          instances_webhook_url: string | null
-          messages_webhook_url: string | null
-          receive_messages_webhook_url: string | null
-          send_messages_webhook_url: string | null
-          updated_at: string
-        }
-        Insert: {
-          chatbot_webhook_url?: string | null
-          created_at?: string
-          empresa_id: string
-          id?: string
-          instances_webhook_url?: string | null
-          messages_webhook_url?: string | null
-          receive_messages_webhook_url?: string | null
-          send_messages_webhook_url?: string | null
-          updated_at?: string
-        }
-        Update: {
-          chatbot_webhook_url?: string | null
-          created_at?: string
-          empresa_id?: string
-          id?: string
-          instances_webhook_url?: string | null
-          messages_webhook_url?: string | null
-          receive_messages_webhook_url?: string | null
-          send_messages_webhook_url?: string | null
-          updated_at?: string
+          updated_at?: string | null
+          url_boot?: string | null
+          url_configuracao_instancia?: string | null
+          url_envio_mensagens?: string | null
+          url_recebimento_mensagens?: string | null
         }
         Relationships: []
       }
@@ -2554,47 +2204,6 @@ export type Database = {
           success?: boolean | null
           trigger_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "trigger_activations_trigger_id_fkey"
-            columns: ["trigger_id"]
-            isOneToOne: false
-            referencedRelation: "automation_triggers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      unified_webhook_configs: {
-        Row: {
-          created_at: string
-          empresa_id: string
-          enabled: boolean
-          events: string[]
-          headers: Json | null
-          id: string
-          updated_at: string
-          webhook_url: string
-        }
-        Insert: {
-          created_at?: string
-          empresa_id: string
-          enabled?: boolean
-          events?: string[]
-          headers?: Json | null
-          id?: string
-          updated_at?: string
-          webhook_url: string
-        }
-        Update: {
-          created_at?: string
-          empresa_id?: string
-          enabled?: boolean
-          events?: string[]
-          headers?: Json | null
-          id?: string
-          updated_at?: string
-          webhook_url?: string
-        }
         Relationships: []
       }
       user_appearance_settings: {
@@ -2889,155 +2498,6 @@ export type Database = {
             columns: ["empresa_id"]
             isOneToOne: false
             referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      webhook_delivery_logs: {
-        Row: {
-          created_at: string | null
-          delivered_at: string | null
-          delivery_attempt: number | null
-          error_message: string | null
-          event_type: string
-          id: string
-          instance_id: string | null
-          payload: Json
-          processing_time_ms: number | null
-          response_body: string | null
-          response_status: number | null
-          success: boolean | null
-          webhook_url: string
-        }
-        Insert: {
-          created_at?: string | null
-          delivered_at?: string | null
-          delivery_attempt?: number | null
-          error_message?: string | null
-          event_type: string
-          id?: string
-          instance_id?: string | null
-          payload: Json
-          processing_time_ms?: number | null
-          response_body?: string | null
-          response_status?: number | null
-          success?: boolean | null
-          webhook_url: string
-        }
-        Update: {
-          created_at?: string | null
-          delivered_at?: string | null
-          delivery_attempt?: number | null
-          error_message?: string | null
-          event_type?: string
-          id?: string
-          instance_id?: string | null
-          payload?: Json
-          processing_time_ms?: number | null
-          response_body?: string | null
-          response_status?: number | null
-          success?: boolean | null
-          webhook_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhook_delivery_logs_instance_id_fkey"
-            columns: ["instance_id"]
-            isOneToOne: false
-            referencedRelation: "evolution_api_config"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      webhooks: {
-        Row: {
-          ativo: boolean | null
-          created_at: string
-          empresa_id: string
-          eventos: string[] | null
-          headers: Json | null
-          id: string
-          nome: string
-          updated_at: string
-          url: string
-        }
-        Insert: {
-          ativo?: boolean | null
-          created_at?: string
-          empresa_id: string
-          eventos?: string[] | null
-          headers?: Json | null
-          id?: string
-          nome: string
-          updated_at?: string
-          url: string
-        }
-        Update: {
-          ativo?: boolean | null
-          created_at?: string
-          empresa_id?: string
-          eventos?: string[] | null
-          headers?: Json | null
-          id?: string
-          nome?: string
-          updated_at?: string
-          url?: string
-        }
-        Relationships: []
-      }
-      webhooks_config: {
-        Row: {
-          ativo: boolean | null
-          created_at: string | null
-          empresa_id: string
-          id: string
-          instance_id: string
-          ultimo_erro: string | null
-          ultimo_teste: string | null
-          updated_at: string | null
-          webhook_events: string[] | null
-          webhook_status: string | null
-          webhook_url: string
-        }
-        Insert: {
-          ativo?: boolean | null
-          created_at?: string | null
-          empresa_id: string
-          id?: string
-          instance_id: string
-          ultimo_erro?: string | null
-          ultimo_teste?: string | null
-          updated_at?: string | null
-          webhook_events?: string[] | null
-          webhook_status?: string | null
-          webhook_url: string
-        }
-        Update: {
-          ativo?: boolean | null
-          created_at?: string | null
-          empresa_id?: string
-          id?: string
-          instance_id?: string
-          ultimo_erro?: string | null
-          ultimo_teste?: string | null
-          updated_at?: string | null
-          webhook_events?: string[] | null
-          webhook_status?: string | null
-          webhook_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "webhooks_config_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "webhooks_config_instance_id_fkey"
-            columns: ["instance_id"]
-            isOneToOne: true
-            referencedRelation: "evolution_api_config"
             referencedColumns: ["id"]
           },
         ]

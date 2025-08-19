@@ -297,37 +297,7 @@ export function useAdvancedSearch(options: UseAdvancedSearchOptions = {}) {
   }, [fuzzyMatch, maxResults]);
 
   // Buscar automações
-  const searchAutomations = useCallback(async (searchQuery: string): Promise<SearchResult[]> => {
-    const { data, error } = await supabase
-      .from('automations')
-      .select('id, name, status')
-      .limit(maxResults);
-
-    if (error) throw error;
-
-    return (data || [])
-      .map(automation => {
-        const title = automation.name;
-        const subtitle = `Status: ${automation.status}`;
-        
-        const score = Math.max(
-          fuzzyMatch(automation.name, searchQuery),
-          fuzzyMatch(automation.status, searchQuery)
-        );
-
-        return {
-          id: automation.id,
-          title,
-          subtitle,
-          type: 'automation' as const,
-          score,
-          url: `/automations?id=${automation.id}`,
-          metadata: { status: automation.status }
-        };
-      })
-      .filter(result => result.score > 0)
-      .sort((a, b) => (b.score || 0) - (a.score || 0));
-  }, [fuzzyMatch, maxResults]);
+  // Removido: searchAutomations - tabela não existe mais
 
   // Função principal de busca
   const performSearch = useCallback(async (searchQuery: string, activeFilters: SearchFilter[]) => {
@@ -358,9 +328,7 @@ export function useAdvancedSearch(options: UseAdvancedSearchOptions = {}) {
       if (filterValues.length === 0 || filterValues.includes('chatbot')) {
         searchPromises.push(searchChatbots(searchQuery));
       }
-      if (filterValues.length === 0 || filterValues.includes('automation')) {
-        searchPromises.push(searchAutomations(searchQuery));
-      }
+      // Removido: automations
 
       const allResults = await Promise.all(searchPromises);
       const combinedResults = allResults
@@ -383,7 +351,6 @@ export function useAdvancedSearch(options: UseAdvancedSearchOptions = {}) {
     searchUsers,
     searchSectors,
     searchChatbots,
-    searchAutomations,
     maxResults,
     saveRecentSearch
   ]);

@@ -1,0 +1,202 @@
+{
+  "version": "1.0",
+  "description": "Configuração de integrações N8N para o Amplie Chat",
+  "webhookHandlers": {
+    "messageSend": {
+      "method": "POST",
+      "description": "Endpoint para envio de mensagens via N8N",
+      "expectedFields": ["to", "message", "timestamp", "instanceName"],
+      "requiredFields": ["to", "message"],
+      "validation": {
+        "to": {
+          "type": "string",
+          "pattern": "^[0-9]{10,15}$",
+          "description": "Número de telefone no formato internacional"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "description": "Conteúdo da mensagem"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "ISO8601",
+          "description": "Timestamp da mensagem"
+        },
+        "instanceName": {
+          "type": "string",
+          "description": "Nome da instância WhatsApp"
+        }
+      },
+      "responseHandling": {
+        "success": {
+          "statusCode": 200,
+          "logLevel": "info",
+          "action": "logSuccessAndContinue"
+        },
+        "error": {
+          "statusCode": [400, 401, 403, 404, 500],
+          "logLevel": "error",
+          "action": "logErrorAndThrow"
+        }
+      },
+      "transform": {
+        "message": "trimAndSanitize",
+        "to": "normalizePhoneNumber"
+      }
+    },
+    "messageReceive": {
+      "method": "POST",
+      "description": "Endpoint para recebimento de mensagens do N8N",
+      "expectedFields": ["from", "message", "receivedAt", "instanceName", "messageId"],
+      "requiredFields": ["from", "message", "receivedAt"],
+      "validation": {
+        "from": {
+          "type": "string",
+          "pattern": "^[0-9]{10,15}$",
+          "description": "Número de telefone remetente"
+        },
+        "message": {
+          "type": "string",
+          "description": "Conteúdo da mensagem recebida"
+        },
+        "receivedAt": {
+          "type": "string",
+          "format": "ISO8601",
+          "description": "Timestamp de recebimento"
+        },
+        "instanceName": {
+          "type": "string",
+          "description": "Nome da instância WhatsApp"
+        },
+        "messageId": {
+          "type": "string",
+          "description": "ID único da mensagem"
+        }
+      },
+      "transform": {
+        "message": "trimAndSanitize",
+        "from": "normalizePhoneNumber"
+      },
+      "responseHandling": {
+        "success": {
+          "statusCode": 200,
+          "logLevel": "info",
+          "action": "processAndStore"
+        },
+        "error": {
+          "statusCode": [400, 422],
+          "logLevel": "warn",
+          "action": "logErrorAndSkip"
+        }
+      }
+    },
+    "instanceConfig": {
+      "method": "GET",
+      "description": "Endpoint para configuração de instância via N8N",
+      "authentication": {
+        "type": "Bearer",
+        "required": true
+      },
+      "requiredHeaders": ["Authorization", "Content-Type"],
+      "expectedResponse": {
+        "instanceName": "string",
+        "status": "string",
+        "qrCode": "string",
+        "profileName": "string",
+        "profilePicture": "string"
+      },
+      "responseHandling": {
+        "success": {
+          "statusCode": 200,
+          "logLevel": "info",
+          "action": "updateInstanceConfig"
+        },
+        "error": {
+          "statusCode": [401, 403, 404],
+          "logLevel": "error",
+          "action": "logErrorAndRetry"
+        }
+      },
+      "retryPolicy": {
+        "maxAttempts": 3,
+        "backoffStrategy": "exponential",
+        "baseDelay": 1000
+      }
+    },
+    "boot": {
+      "method": "POST",
+      "description": "Endpoint para inicialização via N8N",
+      "payloadTemplate": {
+        "status": "online",
+        "bootTime": "{{timestamp}}",
+        "systemVersion": "{{version}}",
+        "instanceCount": "{{instanceCount}}"
+      },
+      "expectedFields": ["status", "bootTime"],
+      "requiredFields": ["status"],
+      "validation": {
+        "status": {
+          "type": "string",
+          "enum": ["online", "offline", "starting", "error"],
+          "description": "Status do sistema"
+        },
+        "bootTime": {
+          "type": "string",
+          "format": "ISO8601",
+          "description": "Timestamp de inicialização"
+        }
+      },
+      "responseHandling": {
+        "success": {
+          "statusCode": 200,
+          "logLevel": "info",
+          "action": "updateSystemStatus"
+        },
+        "error": {
+          "statusCode": [500, 503],
+          "logLevel": "critical",
+          "action": "alertAndRetry"
+        }
+      }
+    }
+  },
+  "globalSettings": {
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "logLevel": "info",
+    "enableDebug": false,
+    "rateLimiting": {
+      "enabled": true,
+      "requestsPerMinute": 60,
+      "burstLimit": 10
+    },
+    "security": {
+      "validateSSL": true,
+      "allowedOrigins": ["*"],
+      "requireAuth": false
+    }
+  },
+  "dataTransformations": {
+    "trimAndSanitize": {
+      "description": "Remove espaços em branco e caracteres especiais perigosos",
+      "operations": ["trim", "stripHtml", "escapeSql"]
+    },
+    "normalizePhoneNumber": {
+      "description": "Normaliza número de telefone para formato internacional",
+      "operations": ["removeNonDigits", "addCountryCode", "validateLength"]
+    }
+  },
+  "errorHandling": {
+    "logAllErrors": true,
+    "notifyOnCritical": true,
+    "fallbackBehavior": "gracefulDegradation",
+    "errorCategories": {
+      "validation": "warn",
+      "authentication": "error",
+      "network": "error",
+      "system": "critical"
+    }
+  }
+}
