@@ -6,8 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Save, TestTube, ExternalLink } from 'lucide-react';
+import { Loader2, Save, TestTube, ExternalLink, Copy, RefreshCw } from 'lucide-react';
 import { SyncLoaderSection, SyncLoaderInline } from '@/components/ui/sync-loader';
+import { generateN8nToken, getSystemUrls } from '@/utils/n8nTokenGenerator';
 
 interface N8nWebhookConfig {
   id?: string;
@@ -16,6 +17,7 @@ interface N8nWebhookConfig {
   url_recebimento_mensagens: string;
   url_configuracao_instancia: string;
   url_boot: string;
+  auth_token?: string;
   ativo: boolean;
 }
 
@@ -26,11 +28,13 @@ export function N8nWebhookConfig() {
     url_recebimento_mensagens: '',
     url_configuracao_instancia: '',
     url_boot: '',
+    auth_token: '',
     ativo: true
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState<string | null>(null);
+  const [systemUrls] = useState(getSystemUrls());
   const { toast } = useToast();
 
   useEffect(() => {
@@ -183,6 +187,7 @@ export function N8nWebhookConfig() {
         url_recebimento_mensagens: config.url_recebimento_mensagens || null,
         url_configuracao_instancia: config.url_configuracao_instancia || null,
         url_boot: config.url_boot || null,
+        auth_token: config.auth_token || null,
         ativo: config.ativo
       };
 
@@ -282,6 +287,23 @@ export function N8nWebhookConfig() {
     }
   };
 
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copiado!",
+      description: `${label} copiada para a área de transferência`,
+    });
+  };
+
+  const generateToken = () => {
+    const newToken = generateN8nToken();
+    setConfig(prev => ({ ...prev, auth_token: newToken }));
+    toast({
+      title: "Token Gerado",
+      description: "Novo token de autenticação gerado",
+    });
+  };
+
   if (loading) {
     return (
       <Card>
@@ -335,6 +357,114 @@ export function N8nWebhookConfig() {
               checked={config.ativo}
               onCheckedChange={(checked) => setConfig(prev => ({ ...prev, ativo: checked }))}
             />
+          </div>
+
+          {/* URLs do Sistema (Somente Leitura) */}
+          <div className="space-y-4 p-4 bg-blue-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-blue-900">📡 URLs do Sistema</h3>
+              <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full">Somente Leitura</span>
+            </div>
+            <p className="text-sm text-blue-700 mb-4">
+              Use estas URLs no seu N8N para enviar dados para o sistema:
+            </p>
+            
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-blue-900">URL para Receber Mensagens</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={systemUrls.webhookReceive}
+                    readOnly
+                    className="flex-1 bg-white border-blue-200"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(systemUrls.webhookReceive, 'URL de recebimento')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-blue-600">Configure no N8N para enviar mensagens para o WhatsApp</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-blue-900">URL para Status de Instâncias</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={systemUrls.instanceStatus}
+                    readOnly
+                    className="flex-1 bg-white border-blue-200"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(systemUrls.instanceStatus, 'URL de status')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-blue-600">Configure no N8N para notificar mudanças de status</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-blue-900">URL para Logs</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={systemUrls.logs}
+                    readOnly
+                    className="flex-1 bg-white border-blue-200"
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(systemUrls.logs, 'URL de logs')}
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-blue-600">Configure no N8N para enviar logs e métricas</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Token de Autenticação */}
+          <div className="space-y-4 p-4 bg-green-50 rounded-lg">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-green-900">🔐 Token de Autenticação</h3>
+              <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">Opcional</span>
+            </div>
+            <p className="text-sm text-green-700 mb-4">
+              Token para validar requisições vindas do N8N (adicione no header x-n8n-token):
+            </p>
+            
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  value={config.auth_token || ''}
+                  onChange={(e) => setConfig(prev => ({ ...prev, auth_token: e.target.value }))}
+                  placeholder="Token não configurado"
+                  className="flex-1 bg-white border-green-200"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={generateToken}
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(config.auth_token || '', 'Token')}
+                  disabled={!config.auth_token}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-green-600">Clique em "Gerar" para criar um novo token seguro</p>
+            </div>
           </div>
 
           {/* URLs */}

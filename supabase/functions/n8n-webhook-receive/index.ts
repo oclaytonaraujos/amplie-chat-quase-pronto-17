@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-n8n-token',
 };
 
 serve(async (req) => {
@@ -19,7 +19,25 @@ serve(async (req) => {
     );
 
     const body = await req.json();
+    const token = req.headers.get('x-n8n-token');
+    
     console.log('n8n webhook received:', JSON.stringify(body, null, 2));
+
+    // Validar token se fornecido
+    if (token) {
+      const { data: config } = await supabase
+        .from('n8n_webhook_config')
+        .select('auth_token, empresa_id')
+        .eq('auth_token', token)
+        .single();
+
+      if (!config) {
+        return new Response(
+          JSON.stringify({ error: 'Token inválido' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
 
     // Extrair dados do webhook n8n
     const {
